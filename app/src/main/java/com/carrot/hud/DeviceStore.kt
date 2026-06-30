@@ -21,6 +21,7 @@ object DeviceStore {
     private const val PREFS = "carrot_hud"
     private const val KEY_DEVICES = "devices"
     private const val KEY_ACTIVE = "active_id"
+    private const val KEY_WIDGET_INTERVAL = "widget_interval_ms"
 
     private fun prefs(ctx: Context) =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -93,6 +94,14 @@ object DeviceStore {
 
     fun setActive(ctx: Context, id: String?) {
         prefs(ctx).edit().putString(KEY_ACTIVE, id).apply()
+    }
+
+    /** Home-screen widget auto-refresh interval (default 60s). */
+    fun getWidgetIntervalMs(ctx: Context): Long =
+        prefs(ctx).getLong(KEY_WIDGET_INTERVAL, 60_000L)
+
+    fun setWidgetIntervalMs(ctx: Context, ms: Long) {
+        prefs(ctx).edit().putLong(KEY_WIDGET_INTERVAL, ms).apply()
     }
 
     fun getActive(ctx: Context): Device? {

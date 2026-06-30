@@ -1,20 +1,34 @@
 package com.carrot.hud
 
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.widget.RemoteViews
 
 /**
- * Home-screen widget: shows the active device's name, current/set speed and
- * online status. Tap the widget to open the app; tap ⟳ to refresh now.
- * Auto-refreshes on the system period (see hud_widget_info.xml) — live speed
- * isn't possible on a home widget, so this is a periodic + on-demand snapshot.
+ * Home-screen widget: active device's name, current/set speed, online status.
+ * Tap = open app; ⟳ = refresh now.
+ *
+ * Android clamps the widget's own updatePeriodMillis to >= 30 min, so for a
+ * shorter cadence we drive refreshes with a self-rescheduling AlarmManager
+ * alarm (interval is user-selectable in the app; default 60s). When the device
+ * is active/charging this fires near the interval; in deep Doze the OS
+ * rate-limits it (~every 9-15 min) to save battery.
  */
 class HudWidgetProvider : AppWidgetProvider() {
+
+    override fun onEnabled(context: Context) {
+        scheduleNext(context)
+    }
+
+    override fun onDisabled(context: Context) {
+        cancel(context)
+    }
 
     override fun onUpdate(context: Context, mgr: AppWidgetManager, ids: IntArray) {
         val pending = goAsync()
@@ -22,6 +36,7 @@ class HudWidgetProvider : AppWidgetProvider() {
             try {
                 ids.forEach { renderWidget(context, mgr, it) }
             } finally {
+                scheduleNext(context)
                 pending.finish()
             }
         }.start()
@@ -37,6 +52,7 @@ class HudWidgetProvider : AppWidgetProvider() {
                 try {
                     ids.forEach { renderWidget(context, mgr, it) }
                 } finally {
+                    scheduleNext(context)
                     pending.finish()
                 }
             }.start()
@@ -46,7 +62,6 @@ class HudWidgetProvider : AppWidgetProvider() {
     private fun renderWidget(context: Context, mgr: AppWidgetManager, id: Int) {
         val views = RemoteViews(context.packageName, R.layout.widget_hud)
 
-        // tap the widget -> open the app
         views.setOnClickPendingIntent(
             R.id.wRoot,
             PendingIntent.getActivity(
@@ -55,7 +70,6 @@ class HudWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_IMMUTABLE
             )
         )
-        // tap refresh -> re-run this provider
         views.setOnClickPendingIntent(
             R.id.wRefresh,
             PendingIntent.getBroadcast(
@@ -86,5 +100,34 @@ class HudWidgetProvider : AppWidgetProvider() {
 
     companion object {
         const val ACTION_REFRESH = "com.carrot.hud.WIDGET_REFRESH"
+        private const val ALARM_REQUEST = 100
+
+        private fun alarmPi(context: Context): PendingIntent =
+            PendingIntent.getBroadcast(
+                context, ALARM_REQUEST,
+                Intent(context, HudWidgetProvider::class.java).setAction(ACTION_REFRESH),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+
+        /** Schedule the next refresh alarm (self-repeating; called after each render). */
+        fun scheduleNext(context: Context) {
+            val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val interval = DeviceStore.getWidgetIntervalMs(context).coerceAtLeast(15_000L)
+            val triggerAt = System.currentTimeMillis() + interval
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                    am.setAndAllowWhileIdle(AlarmManager.RTC, triggerAt, alarmPi(context))
+                else
+                    am.set(AlarmManager.RTC, triggerAt, alarmPi(context))
+            } catch (_: Exception) {
+            }
+        }
+
+        fun cancel(context: Context) {
+            try {
+                (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(alarmPi(context))
+            } catch (_: Exception) {
+            }
+        }
     }
 }

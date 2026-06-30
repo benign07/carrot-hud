@@ -22,6 +22,7 @@ import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -48,7 +49,7 @@ class DeviceListActivity : AppCompatActivity() {
         listView = findViewById(R.id.deviceList)
         emptyView = findViewById(R.id.empty)
         findViewById<View>(R.id.btnAddDevice).setOnClickListener { showEditDialog(null) }
-        findViewById<View>(R.id.btnUpdate).setOnClickListener { checkUpdate() }
+        findViewById<View>(R.id.btnMenu).setOnClickListener { showMenu(it) }
         wifiBanner = findViewById(R.id.wifiBanner)
         wifiBanner.setOnClickListener {
             try {
@@ -168,6 +169,39 @@ class DeviceListActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         io.shutdownNow()
+    }
+
+    // ---------- overflow menu ----------
+
+    private fun showMenu(anchor: View) {
+        val pm = PopupMenu(this, anchor)
+        pm.menu.add(0, 1, 0, "업데이트 확인")
+        pm.menu.add(0, 2, 1, "위젯 갱신 주기")
+        pm.setOnMenuItemClickListener {
+            when (it.itemId) {
+                1 -> checkUpdate()
+                2 -> showIntervalDialog()
+            }
+            true
+        }
+        pm.show()
+    }
+
+    private fun showIntervalDialog() {
+        val labels = arrayOf("30초", "1분", "5분", "15분", "30분")
+        val values = longArrayOf(30_000, 60_000, 300_000, 900_000, 1_800_000)
+        val cur = DeviceStore.getWidgetIntervalMs(this)
+        val checked = values.indexOfFirst { it == cur }.let { if (it < 0) 1 else it }
+        AlertDialog.Builder(this)
+            .setTitle("위젯 갱신 주기")
+            .setSingleChoiceItems(labels, checked) { d, which ->
+                DeviceStore.setWidgetIntervalMs(this, values[which])
+                HudWidgetProvider.scheduleNext(this)
+                toast("위젯 갱신 주기: ${labels[which]} (대략, 충전·화면켜짐 시 정확)")
+                d.dismiss()
+            }
+            .setNegativeButton("닫기", null)
+            .show()
     }
 
     // ---------- in-app update (GitHub Releases) ----------

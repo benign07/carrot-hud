@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Carrot HUD</string>
+
+    <!-- device list -->
+    <string name="devices_title">기기 선택</string>
+    <string name="add_device">기기 추가</string>
+    <string name="no_devices">등록된 기기가 없습니다.\n‘기기 추가’로 콤마 기기의 IP를 등록하세요.</string>
+
+    <!-- hud screen bottom bar -->
+    <string name="btn_overlay">오버레이</string>
+    <string name="btn_settings">설정</string>
+    <string name="btn_devices">기기</string>
+    <string name="btn_reload">↻</string>
+
+    <!-- overlay -->
+    <string name="overlay_title">≡ HUD</string>
+    <string name="overlay_open">앱 열기</string>
+    <string name="overlay_close">닫기</string>
+</resources>

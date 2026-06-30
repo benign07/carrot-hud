@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/overlay_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="2dp">
+
+        <TextView
+            android:id="@+id/overlayDrag"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:text="@string/overlay_title"
+            android:textColor="#DDFFFFFF"
+            android:textSize="12sp" />
+
+        <ImageButton
+            android:id="@+id/overlayOpen"
+            android:layout_width="34dp"
+            android:layout_height="28dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/overlay_open"
+            android:src="@android:drawable/ic_menu_view"
+            android:tint="#DDFFFFFF" />
+
+        <ImageButton
+            android:id="@+id/overlayClose"
+            android:layout_width="34dp"
+            android:layout_height="28dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/overlay_close"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:tint="#DDFFFFFF" />
+    </LinearLayout>
+
+    <WebView
+        android:id="@+id/overlayWeb"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>

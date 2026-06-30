@@ -1,7 +1,11 @@
 package com.carrot.hud
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.provider.Settings
 import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
@@ -29,6 +33,7 @@ class DeviceListActivity : AppCompatActivity() {
     private lateinit var listView: ListView
     private lateinit var emptyView: TextView
     private lateinit var adapter: DeviceAdapter
+    private lateinit var wifiBanner: TextView
 
     private var devices: List<Device> = emptyList()
     private val status = HashMap<String, Boolean?>() // id -> null=checking, true=online, false=offline
@@ -40,13 +45,34 @@ class DeviceListActivity : AppCompatActivity() {
         listView = findViewById(R.id.deviceList)
         emptyView = findViewById(R.id.empty)
         findViewById<View>(R.id.btnAddDevice).setOnClickListener { showEditDialog(null) }
+        wifiBanner = findViewById(R.id.wifiBanner)
+        wifiBanner.setOnClickListener {
+            try {
+                startActivity(Intent(Settings.ACTION_WIFI_SETTINGS))
+            } catch (_: Exception) {
+            }
+        }
         adapter = DeviceAdapter()
         listView.adapter = adapter
     }
 
     override fun onResume() {
         super.onResume()
+        wifiBanner.visibility = if (isOnNetwork()) View.GONE else View.VISIBLE
         refresh()
+    }
+
+    /** True if the phone is on Wi-Fi/Ethernet — i.e. it can reach a LAN device. */
+    private fun isOnNetwork(): Boolean {
+        return try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val net = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(net) ?: return false
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+        } catch (e: Exception) {
+            false
+        }
     }
 
     private fun refresh() {

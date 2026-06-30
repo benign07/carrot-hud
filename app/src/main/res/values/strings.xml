@@ -10,6 +10,7 @@
     <string name="status_checking">확인 중…</string>
     <string name="status_online">온라인</string>
     <string name="status_offline">오프라인</string>
+    <string name="wifi_warning">⚠ WiFi에 연결되어 있지 않습니다. 콤마 기기와 같은 WiFi(또는 핫스팟)에 연결하세요. 탭하면 WiFi 설정이 열립니다.</string>
 
     <!-- hud screen bottom bar -->
     <string name="btn_overlay">오버레이</string>

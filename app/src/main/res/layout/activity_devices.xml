@@ -31,6 +31,18 @@
             android:backgroundTint="@color/brand" />
     </LinearLayout>
 
+    <!-- WiFi warning banner (shown only when not on Wi-Fi) -->
+    <TextView
+        android:id="@+id/wifiBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:background="#3A2A00"
+        android:padding="12dp"
+        android:text="@string/wifi_warning"
+        android:textColor="#FFD479"
+        android:textSize="13sp" />
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Vertical: the WebView sits ABOVE the button bar (not overlapping it),
+     so neither the HUD card nor the full settings page is covered. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="#000000">
 
     <WebView
         android:id="@+id/web"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
         android:orientation="horizontal"
-        android:background="#CC11161B"
+        android:background="#11161B"
         android:paddingTop="2dp"
         android:paddingBottom="2dp">
 
@@ -62,4 +65,4 @@
             android:textSize="15sp"
             android:text="@string/btn_reload" />
     </LinearLayout>
-</FrameLayout>
+</LinearLayout>

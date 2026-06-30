@@ -72,7 +72,7 @@ object Updater {
             if (conn.responseCode !in 200..299) return null
             val out = File(ctx.cacheDir, "update.apk")
             conn.inputStream.use { input ->
-                out.outputStream.use { output -> input.copyTo(output, 64 * 1024) }
+                out.outputStream().use { output -> input.copyTo(output, 64 * 1024) }
             }
             out
         } catch (e: Exception) {

@@ -1,7 +1,7 @@
 name: Build APK
 
-# Builds a debug APK in the cloud (no local Android tooling needed).
-# After it runs: open the run -> Artifacts -> download "CarrotHud-debug-apk".
+# Builds a debug APK in the cloud and publishes it as a GitHub Release
+# (tag = build number = versionCode) so the app's in-app updater can find it.
 on:
   push:
   workflow_dispatch:
@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -30,11 +32,22 @@ jobs:
           gradle-version: '8.7'
 
       - name: Build debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: >
+          gradle assembleDebug --no-daemon --stacktrace
+          -PversionCode=${{ github.run_number }}
+          -PversionName=1.0.${{ github.run_number }}
 
-      - name: Upload APK
+      - name: Upload APK (artifact)
         uses: actions/upload-artifact@v4
         with:
           name: CarrotHud-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Build ${{ github.run_number }}
+          body: "Carrot HUD build ${{ github.run_number }} (versionCode ${{ github.run_number }})."
+          files: app/build/outputs/apk/debug/*.apk

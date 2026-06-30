@@ -5,7 +5,10 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.provider.Settings
+import android.widget.ProgressBar
+import android.widget.Toast
 import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
@@ -45,6 +48,7 @@ class DeviceListActivity : AppCompatActivity() {
         listView = findViewById(R.id.deviceList)
         emptyView = findViewById(R.id.empty)
         findViewById<View>(R.id.btnAddDevice).setOnClickListener { showEditDialog(null) }
+        findViewById<View>(R.id.btnUpdate).setOnClickListener { checkUpdate() }
         wifiBanner = findViewById(R.id.wifiBanner)
         wifiBanner.setOnClickListener {
             try {
@@ -164,6 +168,66 @@ class DeviceListActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         io.shutdownNow()
+    }
+
+    // ---------- in-app update (GitHub Releases) ----------
+
+    private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+
+    private fun checkUpdate() {
+        toast("업데이트 확인 중…")
+        io.execute {
+            val latest = Updater.fetchLatest()
+            val current = Updater.currentVersionCode(this)
+            runOnUiThread {
+                when {
+                    latest == null ->
+                        toast("업데이트 정보를 못 가져왔습니다. (저장소가 공개인지 확인)")
+                    latest.versionCode <= current ->
+                        toast("이미 최신 버전입니다 (현재 v$current)")
+                    else -> promptInstall(latest, current)
+                }
+            }
+        }
+    }
+
+    private fun promptInstall(latest: Updater.Latest, current: Long) {
+        AlertDialog.Builder(this)
+            .setTitle("새 버전 ${latest.tag}")
+            .setMessage("새 버전이 있습니다.\n현재 v$current → 최신 v${latest.versionCode}\n다운로드 후 설치할까요?")
+            .setPositiveButton("다운로드·설치") { _, _ -> startDownload() }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    private fun startDownload() {
+        if (!Updater.canInstall(this)) {
+            toast("‘이 출처의 앱 설치 허용’을 켠 뒤 다시 시도하세요")
+            try {
+                startActivity(
+                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName"))
+                )
+            } catch (_: Exception) {
+            }
+            return
+        }
+        val spinner = ProgressBar(this)
+        val pad = (24 * resources.displayMetrics.density).toInt()
+        spinner.setPadding(pad, pad, pad, pad)
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("다운로드 중…")
+            .setView(spinner)
+            .setCancelable(false)
+            .create()
+        dialog.show()
+        io.execute {
+            val file = Updater.download(this)
+            runOnUiThread {
+                if (dialog.isShowing) dialog.dismiss()
+                if (file != null) Updater.install(this, file)
+                else toast("다운로드 실패 (네트워크/저장소 확인)")
+            }
+        }
     }
 
     private inner class DeviceAdapter : BaseAdapter() {

@@ -23,6 +23,17 @@
             android:textStyle="bold" />
 
         <Button
+            android:id="@+id/btnUpdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:background="@android:color/transparent"
+            android:minWidth="0dp"
+            android:text="@string/update"
+            android:textColor="#9FD6AE"
+            android:textSize="13sp" />
+
+        <Button
             android:id="@+id/btnAddDevice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

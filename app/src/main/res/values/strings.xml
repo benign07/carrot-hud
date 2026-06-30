@@ -5,6 +5,7 @@
     <!-- device list -->
     <string name="devices_title">기기 선택</string>
     <string name="add_device">기기 추가</string>
+    <string name="update">업데이트</string>
     <string name="no_devices">등록된 기기가 없습니다.\n‘기기 추가’로 콤마 기기의 IP를 등록하세요.</string>
     <string name="row_settings">설정</string>
     <string name="status_checking">확인 중…</string>

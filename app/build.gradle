@@ -11,8 +11,8 @@ android {
         applicationId 'com.carrot.hud'
         minSdk 26
         targetSdk 33
-        versionCode 1
-        versionName '1.0'
+        versionCode ((project.findProperty("versionCode") ?: "1").toString().toInteger())
+        versionName ((project.findProperty("versionName") ?: "1.0").toString())
     }
 
     buildTypes {

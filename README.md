@@ -48,6 +48,20 @@ Your PC has no Android build tools, so build it on GitHub for free:
    stays on top of other apps (drag to move, ✕ to close). **기기** returns to the
    list; **설정** opens the full CarrotPilot web app.
 
+## Updates (in-app)
+
+Each CI build publishes a **GitHub Release** (tag `v<build#>`, with versionCode =
+build#) and attaches the APK. In the app, the **업데이트** button (device-list
+header) checks the latest release; if it's newer than the installed version it
+downloads and installs it.
+
+Requirements:
+- The repo must be **public** so the release + APK are reachable without a token.
+- Every build is signed with a **fixed keystore** (`app/keystore.p12`, committed)
+  so an update installs over the previous version. **One-time:** if you already
+  installed an earlier, differently-signed build, **uninstall it once**, then
+  install a release build — after that the 업데이트 button updates in place.
+
 ## Alternative: build with Android Studio
 
 Install Android Studio (free), **Open** this folder, let it sync Gradle

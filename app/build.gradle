@@ -15,12 +15,24 @@ android {
         versionName ((project.findProperty("versionName") ?: "1.0").toString())
     }
 
+    signingConfigs {
+        // Fixed keystore so every build (CI included) is signed with the SAME
+        // key -> in-app updates install over the previous version cleanly.
+        fixed {
+            storeFile file("keystore.p12")
+            storePassword "android"
+            keyAlias "carrothud"
+            keyPassword "android"
+            storeType "PKCS12"
+        }
+    }
+
     buildTypes {
         debug {
-            // debuggable, no signing config needed -> assembleDebug yields an
-            // installable APK signed with the auto-generated debug key.
+            signingConfig signingConfigs.fixed
         }
         release {
+            signingConfig signingConfigs.fixed
             minifyEnabled false
         }
     }

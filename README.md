@@ -40,7 +40,10 @@ Your PC has no Android build tools, so build it on GitHub for free:
 2. Tap **기기 추가**, enter a name (e.g. 펠리세이드) and the device **IP**
    (same Wi‑Fi — the address shown bottom‑right on the comma screen / your
    router), then save. Add as many devices as you like.
-3. Tap a device → its HUD opens. (Long‑press a row for 수정 / 삭제 / 설정 열기.)
+3. Each row shows the device's **online / offline** status (reachable on
+   `:7000` — true even when the **car is not connected**, since the device is
+   still on Wi‑Fi). Tap a row → HUD; tap the row's **설정** button → go straight
+   into the device settings (works with the car off). Long‑press → 수정 / 삭제.
 4. In the HUD: **오버레이** → grant *"display over other apps"* → a floating HUD
    stays on top of other apps (drag to move, ✕ to close). **기기** returns to the
    list; **설정** opens the full CarrotPilot web app.

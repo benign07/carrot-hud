@@ -1,38 +1,47 @@
 package com.carrot.hud
 
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
-import android.widget.ArrayAdapter
+import android.view.ViewGroup
+import android.widget.BaseAdapter
+import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
- * Launcher screen: a list of registered comma devices (by IP).
- * Add / edit / delete devices, tap one to open its HUD.
+ * Launcher screen: list of registered comma devices (by IP).
+ * Shows each device's online/offline status (reachable on :7000 — independent
+ * of whether the car is connected), so you can jump straight into settings
+ * even when the HUD has no driving data. Add / edit / delete supported.
  */
 class DeviceListActivity : AppCompatActivity() {
 
     private lateinit var listView: ListView
     private lateinit var emptyView: TextView
+    private lateinit var adapter: DeviceAdapter
+
     private var devices: List<Device> = emptyList()
+    private val status = HashMap<String, Boolean?>() // id -> null=checking, true=online, false=offline
+    private val io: ExecutorService = Executors.newFixedThreadPool(4)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_devices)
-
         listView = findViewById(R.id.deviceList)
         emptyView = findViewById(R.id.empty)
-
         findViewById<View>(R.id.btnAddDevice).setOnClickListener { showEditDialog(null) }
-
-        listView.setOnItemClickListener { _, _, pos, _ -> openHud(devices[pos]) }
-        listView.setOnItemLongClickListener { _, _, pos, _ -> showRowMenu(devices[pos]); true }
+        adapter = DeviceAdapter()
+        listView.adapter = adapter
     }
 
     override fun onResume() {
@@ -42,9 +51,22 @@ class DeviceListActivity : AppCompatActivity() {
 
     private fun refresh() {
         devices = DeviceStore.getDevices(this)
-        val labels = devices.map { "${it.name}\n${it.label()}" }
-        listView.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, labels)
         emptyView.visibility = if (devices.isEmpty()) View.VISIBLE else View.GONE
+        adapter.notifyDataSetChanged()
+        for (d in devices) {
+            status[d.id] = null
+            checkDevice(d)
+        }
+    }
+
+    private fun checkDevice(d: Device) {
+        io.execute {
+            val up = Net.isUp(d)
+            runOnUiThread {
+                status[d.id] = up
+                adapter.notifyDataSetChanged()
+            }
+        }
     }
 
     private fun openHud(d: Device, settings: Boolean = false) {
@@ -111,5 +133,43 @@ class DeviceListActivity : AppCompatActivity() {
             }
             .setNegativeButton("취소", null)
             .show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        io.shutdownNow()
+    }
+
+    private inner class DeviceAdapter : BaseAdapter() {
+        override fun getCount(): Int = devices.size
+        override fun getItem(position: Int): Any = devices[position]
+        override fun getItemId(position: Int): Long = position.toLong()
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            val v = convertView ?: layoutInflater.inflate(R.layout.device_row, parent, false)
+            val d = devices[position]
+
+            v.findViewById<TextView>(R.id.rowName).text = d.name
+
+            val up = status[d.id]
+            val statusText = when (up) {
+                null -> getString(R.string.status_checking)
+                true -> getString(R.string.status_online)
+                else -> getString(R.string.status_offline)
+            }
+            v.findViewById<TextView>(R.id.rowIp).text = "${d.label()}  ·  $statusText"
+
+            val dotColor = when (up) {
+                null -> Color.parseColor("#888888")
+                true -> Color.parseColor("#3DDC84")
+                else -> Color.parseColor("#E5534B")
+            }
+            v.findViewById<View>(R.id.statusDot).backgroundTintList = ColorStateList.valueOf(dotColor)
+
+            v.findViewById<Button>(R.id.rowSettings).setOnClickListener { openHud(d, true) }
+            v.setOnClickListener { openHud(d, false) }
+            v.setOnLongClickListener { showRowMenu(d); true }
+            return v
+        }
     }
 }

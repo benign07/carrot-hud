@@ -11,7 +11,7 @@ data class Device(
     val ip: String,
     val port: Int = 7000
 ) {
-    fun hudUrl(): String = "http://$ip:$port/?view=hud"
+    fun hudUrl(): String = "http://$ip:$port/hud.html"
     fun settingsUrl(): String = "http://$ip:$port/"
     fun label(): String = "$ip:$port"
 }

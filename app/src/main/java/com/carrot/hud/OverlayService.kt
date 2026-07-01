@@ -77,7 +77,14 @@ class OverlayService : Service() {
         val web = v.findViewById<WebView>(R.id.overlayWeb)
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
-        web.loadUrl(device.hudUrl())
+        web.loadDataWithBaseURL(null, "<html><body style='margin:0;background:#0a0e12'></body></html>", "text/html", "utf-8", null)
+        // resolve the device IP (may scan the LAN if the hotspot changed it), then load
+        Thread {
+            val resolved = Net.resolve(this, device)
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                if (resolved != null) web.loadUrl(resolved.hudUrl())
+            }
+        }.start()
 
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY

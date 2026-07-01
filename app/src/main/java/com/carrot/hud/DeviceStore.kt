@@ -9,7 +9,8 @@ data class Device(
     val id: String,
     val name: String,
     val ip: String,
-    val port: Int = 7000
+    val port: Int = 7000,
+    val dongle: String = ""   // stable identity for auto-discovery when IP changes
 ) {
     fun hudUrl(): String = "http://$ip:$port/hud.html"
     fun settingsUrl(): String = "http://$ip:$port/"
@@ -38,7 +39,8 @@ object DeviceStore {
                         o.getString("id"),
                         o.optString("name", o.getString("ip")),
                         o.getString("ip"),
-                        o.optInt("port", 7000)
+                        o.optInt("port", 7000),
+                        o.optString("dongle", "")
                     )
                 )
             }
@@ -56,6 +58,7 @@ object DeviceStore {
                     .put("name", d.name)
                     .put("ip", d.ip)
                     .put("port", d.port)
+                    .put("dongle", d.dongle)
             )
         }
         prefs(ctx).edit().putString(KEY_DEVICES, arr.toString()).apply()
@@ -88,6 +91,20 @@ object DeviceStore {
         val list = getDevices(ctx).filterNot { it.id == id }
         save(ctx, list)
         if (getActiveId(ctx) == id) setActive(ctx, list.firstOrNull()?.id)
+    }
+
+    /** Update a device's IP (used by auto-discovery when the hotspot changes it). */
+    fun setIp(ctx: Context, id: String, ip: String) {
+        val clean = cleanIp(ip)
+        val list = getDevices(ctx).map { if (it.id == id) it.copy(ip = clean) else it }
+        save(ctx, list)
+    }
+
+    /** Store the device's stable identity (dongle) for later discovery. */
+    fun setDongle(ctx: Context, id: String, dongle: String) {
+        if (dongle.isBlank()) return
+        val list = getDevices(ctx).map { if (it.id == id) it.copy(dongle = dongle) else it }
+        save(ctx, list)
     }
 
     fun getActiveId(ctx: Context): String? = prefs(ctx).getString(KEY_ACTIVE, null)

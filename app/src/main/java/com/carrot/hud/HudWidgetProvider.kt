@@ -90,7 +90,16 @@ class HudWidgetProvider : AppWidgetProvider() {
         }
 
         views.setTextViewText(R.id.wName, device.name)
-        val snap = Net.fetchSnapshot(device)
+        val resolved = Net.resolve(context, device)
+        if (resolved == null) {
+            views.setTextViewText(R.id.wSpeed, "--")
+            views.setTextViewText(R.id.wSetSpeed, "--")
+            views.setTextViewText(R.id.wStatus, "○ 오프라인 (앱·WiFi 확인)")
+            views.setTextColor(R.id.wStatus, 0xFFE5534B.toInt())
+            mgr.updateAppWidget(id, views)
+            return
+        }
+        val snap = Net.fetchSnapshot(resolved)
         views.setTextViewText(R.id.wSpeed, snap.speed)
         views.setTextViewText(R.id.wSetSpeed, snap.setSpeed)
         views.setTextViewText(R.id.wStatus, if (snap.online) "● 온라인" else "○ 오프라인 (앱·WiFi 확인)")

@@ -14,6 +14,8 @@
     <string name="wifi_warning">⚠ WiFi에 연결되어 있지 않습니다. 콤마 기기와 같은 WiFi(또는 핫스팟)에 연결하세요. 탭하면 WiFi 설정이 열립니다.</string>
     <string name="w_current">현재</string>
     <string name="w_set">설정</string>
+    <string name="w_mode_title">운전모드</string>
+    <string name="w_mode_tap">탭하면 변경</string>
 
     <!-- hud screen bottom bar -->
     <string name="btn_overlay">오버레이</string>

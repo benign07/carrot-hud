@@ -126,32 +126,61 @@ object Net {
         }
     }
 
-    /** Scan the local /24 for a comma serving :7000; match dongle if known. Returns its IP or null. */
+    /** All of the phone's site-local IPv4 /24 subnet prefixes (Wi-Fi + hotspot AP
+     *  + mobile). Enumerating interfaces (not just activeNetwork) matters because
+     *  when the phone itself is the hotspot, the AP subnet (192.168.x, where the
+     *  comma lives) is NOT the active/internet network. */
+    fun localSubnets(): List<String> {
+        val subs = LinkedHashSet<String>()
+        try {
+            val ifaces = java.net.NetworkInterface.getNetworkInterfaces() ?: return emptyList()
+            for (iface in ifaces) {
+                try {
+                    if (!iface.isUp || iface.isLoopback) continue
+                } catch (e: Exception) { continue }
+                for (addr in iface.inetAddresses) {
+                    if (addr is Inet4Address && !addr.isLoopbackAddress && addr.isSiteLocalAddress) {
+                        val h = addr.hostAddress ?: continue
+                        val p = h.split(".")
+                        if (p.size == 4) subs.add("${p[0]}.${p[1]}.${p[2]}")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+        }
+        return subs.toList()
+    }
+
+    /** Scan the phone's local /24 subnet(s) for a comma serving :7000; match the
+     *  dongle if known (else accept any comma). Returns its IP or null. */
     fun discover(ctx: Context, wantDongle: String?, port: Int = 7000): String? {
-        val subnet = wifiSubnet(ctx) ?: return null
+        val subnets = localSubnets()
+        if (subnets.isEmpty()) return null
         val pool = Executors.newFixedThreadPool(64)
         val found = AtomicReference<String?>(null)
-        val latch = CountDownLatch(254)
         val want = (wantDongle ?: "").trim()
-        for (i in 1..254) {
-            val ip = "$subnet.$i"
-            pool.execute {
-                try {
-                    if (found.get() == null) {
-                        val dongle = fetchDongle(ip, port, 500)
-                        if (dongle != null) { // a comma answered
-                            if (want.isEmpty() || want == "UnregisteredDevice" || dongle == want) {
-                                found.compareAndSet(null, ip)
+        val latch = CountDownLatch(subnets.size * 254)
+        for (subnet in subnets) {
+            for (i in 1..254) {
+                val ip = "$subnet.$i"
+                pool.execute {
+                    try {
+                        if (found.get() == null) {
+                            val dongle = fetchDongle(ip, port, 500)
+                            if (dongle != null) {
+                                if (want.isEmpty() || want == "UnregisteredDevice" || dongle == want) {
+                                    found.compareAndSet(null, ip)
+                                }
                             }
                         }
+                    } catch (e: Exception) {
+                    } finally {
+                        latch.countDown()
                     }
-                } catch (e: Exception) {
-                } finally {
-                    latch.countDown()
                 }
             }
         }
-        try { latch.await(10, TimeUnit.SECONDS) } catch (e: Exception) {}
+        try { latch.await(12, TimeUnit.SECONDS) } catch (e: Exception) {}
         pool.shutdownNow()
         return found.get()
     }

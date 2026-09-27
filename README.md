@@ -9,6 +9,13 @@ It does **not** re‑implement the HUD. It loads the device's own web HUD
 (`http://<device-ip>:7000/?view=hud`) inside a WebView, so the numbers always
 match the device and stay in sync with any web updates.
 
+This preparation branch also archives completed passive driving records while
+the HUD or overlay is in use. Transfers resume after reconnecting and are verified
+by length and SHA-256. Use **기록 내보내기** to export a ZIP for PC analysis.
+See [automatic recording details and limits](AUTOMATIC_RECORDING.md).
+It does not change steering/braking settings. Installation and phone validation
+are pending; the device-side automatic recorder is required.
+
 | Button | Action |
 |--------|--------|
 | **오버레이** | Start the floating always‑on‑top mini‑HUD (asks for "display over other apps" once). Drag to move, ✕ to close. |
@@ -70,8 +77,10 @@ press **Run** with your phone connected.
 
 ## Notes / limits
 
-- The phone must be on the **same network** as the comma device (Wi‑Fi /
-  hotspot). The app only displays the device's web HUD; it does not store data.
+- The phone needs a working network route to the comma device (Wi-Fi/hotspot or
+  the device's Tailscale address). Completed automatic-recording chunks are kept
+  locally in this branch. Closing both HUD and overlay pauses phone transfers;
+  device recording continues, and reopening catches up.
 - HTTP (not HTTPS) is used on the LAN — this is why a native app is needed for
   the always‑on‑top overlay (browsers block that over plain HTTP).
 - `minSdk 26` (Android 8.0+), `targetSdk 33`.

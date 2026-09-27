@@ -31,9 +31,9 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Build debug APK
+      - name: Test and build debug APK
         run: >
-          gradle assembleDebug --no-daemon --stacktrace
+          gradle testDebugUnitTest assembleDebug --no-daemon --stacktrace
           -PversionCode=${{ github.run_number }}
           -PversionName=1.0.${{ github.run_number }}
 
@@ -45,6 +45,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish Release
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.run_number }}

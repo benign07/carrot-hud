@@ -10,6 +10,10 @@ import android.view.View
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import android.widget.TextView
+import android.os.Handler
+import android.os.Looper
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 
 /**
@@ -21,6 +25,22 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var web: WebView
     private var device: Device? = null
+    private val archiveHandler = Handler(Looper.getMainLooper())
+    private val archiveStatus = object : Runnable {
+        override fun run() {
+            findViewById<TextView>(R.id.archiveStatus)?.text = DriveArchive.status
+            archiveHandler.postDelayed(this, 2000)
+        }
+    }
+    private val exportRecords = registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        if (uri != null) Thread {
+            val text = try {
+                DriveArchive.export(applicationContext, uri)
+                "주행 기록 내보내기 완료 · PC에서 압축을 풀어 분석하세요"
+            } catch (e: Exception) { "내보내기 실패: ${e.message}" }
+            runOnUiThread { Toast.makeText(this, text, Toast.LENGTH_LONG).show() }
+        }.start()
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +56,9 @@ class MainActivity : AppCompatActivity() {
         DeviceStore.setActive(this, device!!.id)
 
         setContentView(R.layout.activity_main)
+        findViewById<View>(R.id.btnExportRecords).setOnClickListener {
+            exportRecords.launch("carrot-drive-${System.currentTimeMillis()}.zip")
+        }
         web = findViewById(R.id.web)
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
@@ -60,6 +83,20 @@ class MainActivity : AppCompatActivity() {
             "font-family:sans-serif;font-size:16px;display:flex;align-items:center;" +
             "justify-content:center;text-align:center;padding:6vw\">$msg</body></html>"
         web.loadDataWithBaseURL(null, html, "text/html", "utf-8", null)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (device != null) {
+            DriveArchive.attach(this, this)
+            archiveHandler.post(archiveStatus)
+        }
+    }
+
+    override fun onStop() {
+        archiveHandler.removeCallbacks(archiveStatus)
+        DriveArchive.detach(this)
+        super.onStop()
     }
 
     /** Resolve the device's current IP (may scan the LAN) then load its page. */

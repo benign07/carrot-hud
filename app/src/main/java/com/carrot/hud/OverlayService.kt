@@ -34,6 +34,7 @@ class OverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         startForeground(NOTIF_ID, buildNotification())
+        DriveArchive.attach(this, this)
         addOverlay()
     }
 
@@ -138,6 +139,7 @@ class OverlayService : Service() {
         (value * resources.displayMetrics.density).toInt()
 
     override fun onDestroy() {
+        DriveArchive.detach(this)
         super.onDestroy()
         try {
             overlay?.let { wm?.removeView(it) }

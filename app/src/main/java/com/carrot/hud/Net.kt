@@ -198,6 +198,10 @@ object Net {
             }
             return device
         }
+        // A Tailscale address is stable. Do not replace it with an unrelated LAN
+        // device while the registered OP or VPN is temporarily offline.
+        val parts = device.ip.split('.').map { it.toIntOrNull() ?: -1 }
+        if (parts.size == 4 && parts[0] == 100 && parts[1] in 64..127 && parts.all { it in 0..255 }) return null
         val ip = discover(ctx, device.dongle.ifBlank { null }, device.port) ?: return null
         DeviceStore.setIp(ctx, device.id, ip)
         val updated = device.copy(ip = ip)

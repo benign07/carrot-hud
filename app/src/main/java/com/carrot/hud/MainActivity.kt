@@ -25,6 +25,15 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var web: WebView
     private var device: Device? = null
+    private var needsConnection = true
+    private var waitingForSettings = false
+    private val resolving = java.util.concurrent.atomic.AtomicBoolean(false)
+    private val reconnect = object : Runnable {
+        override fun run() {
+            if (needsConnection) loadResolved(waitingForSettings)
+            archiveHandler.postDelayed(this, 20_000)
+        }
+    }
     private val archiveHandler = Handler(Looper.getMainLooper())
     private val archiveStatus = object : Runnable {
         override fun run() {
@@ -94,11 +103,13 @@ class MainActivity : AppCompatActivity() {
         if (device != null) {
             DriveArchive.attach(this, this)
             archiveHandler.post(archiveStatus)
+            archiveHandler.postDelayed(reconnect, 20_000)
         }
     }
 
     override fun onStop() {
         archiveHandler.removeCallbacks(archiveStatus)
+        archiveHandler.removeCallbacks(reconnect)
         DriveArchive.detach(this)
         super.onStop()
     }
@@ -106,15 +117,20 @@ class MainActivity : AppCompatActivity() {
     /** Resolve the device's current IP (may scan the LAN) then load its page. */
     private fun loadResolved(settings: Boolean) {
         val d = device ?: return
+        if (!resolving.compareAndSet(false, true)) return
+        waitingForSettings = settings
         showMsg("기기 찾는 중… (${d.name})")
         Thread {
             val resolved = Net.resolve(this, d)
             runOnUiThread {
+                resolving.set(false)
                 if (isFinishing) return@runOnUiThread
                 if (resolved == null) {
-                    showMsg("기기를 찾을 수 없습니다.<br><br>폰과 같은 WiFi/핫스팟인지,<br>콤마가 켜져 있는지 확인하세요.<br><br>(‘기기’ 버튼 → 목록에서 다시 시도)")
+                    needsConnection = true
+                    showMsg("오파 연결을 기다리고 있습니다.<br><br>오파와 Tailscale/Wi-Fi 연결을 확인하세요.<br>20초마다 자동으로 다시 연결합니다.<br><br>폰에 보관된 기록의 PC 전송은 별도로 진행됩니다.")
                     return@runOnUiThread
                 }
+                needsConnection = false
                 device = resolved
                 web.loadUrl(if (settings) resolved.settingsUrl() else resolved.hudUrl())
             }

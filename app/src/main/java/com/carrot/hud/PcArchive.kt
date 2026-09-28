@@ -38,10 +38,15 @@ object PcArchive {
             val prefs = context.getSharedPreferences("archive_status", Context.MODE_PRIVATE)
             var last = prefs.getLong("last_pc_success", 0)
             var sent = 0
+            var skipped = 0
             val deadline = android.os.SystemClock.elapsedRealtime() + 120_000
             for ((info, file) in pending) {
                 if (cancelled() || android.os.SystemClock.elapsedRealtime() >= deadline || sent >= 24) break
-                status = "PC 전송 중 · 완료 $completed / 대기 ${pending.size - sent}"
+                if (!try { ChunkTransfer.verified(file, info) } catch (_: Exception) { false }) {
+                    damaged++; skipped++
+                    continue
+                }
+                status = "PC 전송 중 · 완료 $completed / 대기 ${pending.size - sent - skipped}"
                 try {
                     PcTransfer.upload(endpoint, info, file)
                     last = System.currentTimeMillis()
@@ -50,12 +55,12 @@ object PcArchive {
                     prefs.edit().putLong("last_pc_success", last).apply()
                     completed++; sent++
                 } catch (_: Exception) {
-                    status = "PC 연결/전송 대기 · 완료 $completed / 대기 ${pending.size - sent} · ${lastText(last)}"
+                    status = "PC 연결/전송 대기 · 완료 $completed / 대기 ${pending.size - sent - skipped} · ${lastText(last)}" + if (damaged > 0) " · 기록 오류 $damaged" else ""
                     return false
                 }
             }
-            status = "PC 완료 $completed · 대기 ${pending.size - sent} · ${lastText(last)}" + if (damaged > 0) " · 기록 오류 $damaged" else ""
-            return pending.size == sent
+            status = "PC 완료 $completed · 대기 ${pending.size - sent - skipped} · ${lastText(last)}" + if (damaged > 0) " · 기록 오류 $damaged" else ""
+            return pending.size == sent + skipped
         } finally { lock.unlock() }
     }
 

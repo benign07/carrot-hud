@@ -1,0 +1,57 @@
+# 부팅 자동 연결과 PC 전송 준비본
+
+2026-09-28 `boot-pc-sync-20260928` 브랜치에서 준비한다. 실폰 설치본 1.0.11과 구분한다. 이 준비본은 아직 폰에 설치하지 않았으며, 실제 재부팅·잠금 해제·절전·Tailscale 재접속 시험은 설치 후 수행해야 한다.
+
+## 사용자 동작
+
+1. 처음 한 번 앱을 열고 **자동 기록·PC 전송 → PC 연결 파일 등록**에서 PC가 생성한 `z13.pairing.json`을 선택한다. 연결 키는 APK/GitHub에 포함하지 않으며 앱의 클라우드 백업 제외 저장소에 보관한다.
+2. **부팅 후 자동 연결·PC 전송**을 켜 둔다. 설치 후 최초 앱 실행은 필요하다. 재부팅 뒤 첫 잠금 해제 후 연결 서비스가 시작되며 알림을 표시한다. 전체 HUD 화면은 알림/앱에서 열고, 잠금화면을 강제로 해제하거나 HUD 화면을 강제로 띄우지 않는다.
+3. 샤오미의 앱 자동 시작·배터리 설정에서 Carrot HUD와 Tailscale 실행을 허용한다. 정확한 메뉴와 효과는 실폰에서 확인한다. 앱 강제 종료 이후에는 사용자가 다시 실행해야 한다.
+4. HUD 하단 또는 기기 목록 메뉴의 **자동 기록·PC 전송**에서 보관 개수, PC 완료/대기, 최근 성공 시각을 확인한다. 알림/스위치로 자동 연결을 중지할 수 있다. HUD/오버레이를 직접 열어 사용하는 동안의 수동 보관 동작은 별도로 유지된다.
+
+## 실행과 연결
+
+- 오파 네트워크 연결은 알림이 있는 `connectedDevice` 서비스가 유지한다. 완성 기록을 약 20초 간격으로 확인한다. 저장된 Tailscale 주소는 오프라인이라는 이유로 임의 LAN 주소로 바꾸지 않는다. HUD도 최초 연결 실패 시 표시 중에 재시도한다.
+- PC 업로드는 독립된 WorkManager 작업이다. 오파가 꺼져 있어도 먼저 폰의 보관 파일을 전송한다. 부팅/앱 실행/네트워크 연결/새 파일 보관 시 요청하며, 예약 작업은 최소 15분 간격이다. OS 절전/실행 할당량으로 실행 시점이 늦어질 수 있다. 지속적인 화면 꺼짐 상태에서 정확한 20초/15분 실행을 보장하지 않는다.
+- WorkManager와 연결 서비스가 동시에 시작되어도 오파 다운로드는 한 작업만 수행한다. PC 업로드도 하나만 수행한다. 한 PC 전송 실행은 최대 24개 또는 약 2분, 한 파일 요청은 최대 45초로 제한한다. 실패/잔여분은 지수 지연과 주기 작업으로 재시도한다.
+- 서비스 실행이 OS에 의해 제한되면 앱에 대기 상태를 표시하고 예약 작업을 유지한다. `dataSync` 전경 서비스를 부팅 이벤트로 시작하지 않는다. 연결 유지와 백업 업로드를 분리했다.
+
+## PC 수신기
+
+Python 3.11 이상과 `pc/requirements.txt`의 aiohttp가 필요하다. 수신기를 실행할 PC에서:
+
+```powershell
+python pc/receiver.py --init D:/CarrotPrivate --bind <PC-Tailscale-IP> --phone <Phone-Tailscale-IP> --out D:/CarrotRecords --analysis-script <openpilot>/tools/can_auto_sync.py
+./pc/start_receiver.ps1 -Config D:/CarrotPrivate/receiver-config.json
+```
+
+초기화는 기존 연결 파일을 덮어쓰지 않는다. `receiver-config.json`과 `z13.pairing.json`은 비공개로 보관한다. 연결 설정에는 PC별 식별자와 임의 인증 키가 들어 있으며 다른 PC로 보내지 않는다.
+
+Windows 로그인 시 자동 실행 등록은 명시적으로 다음 스위치를 사용한다. 사용자 로그인 후 실행되는 작업이며, PC 전원이 꺼져 있거나 절전 중이면 수신하지 않는다.
+
+```powershell
+./pc/start_receiver.ps1 -Config D:/CarrotPrivate/receiver-config.json -InstallAutostart
+```
+
+방화벽이 차단하는 경우 관리자 PowerShell에서 같은 스크립트에 `-AddFirewallRule`을 사용한다. 해당 Python 프로그램/PC Tailscale IP/수신 포트/등록된 폰 Tailscale IP만 허용한다. 준비 과정에서 작업 스케줄러/방화벽을 자동 변경하지 않는다.
+
+Z13 준비 설정: PC `100.114.242.2:7041`, 폰 `100.103.18.55`. 수신기는 PC Tailscale 주소에만 바인딩하고 지정 폰 주소 및 인증 키를 모두 확인한다. 일반 LAN/공인 인터페이스로 바인딩하지 않는다. HTTP 전송은 Tailscale 터널 내부에서만 사용한다. 공유기 포트 포워딩/공개 서버는 필요 없다.
+
+## 전송 보장과 한계
+
+- 완성된 압축 진단 파일만 전송한다. 전체 rlog, 영상, 앱 설정/연결 키는 업로드하지 않는다. 모바일망 사용이 가능하다.
+- PC는 크기·SHA-256·압축 해제 상한·기록 형식을 검사하고 파일과 manifest를 저장·동기화한 후 저장 확인 응답을 보낸다. 폰은 응답의 PC 식별자·파일 ID·크기·해시가 모두 맞을 때 완료 영수증을 저장한다.
+- 응답 유실 시 같은 파일을 재전송해도 중복 파일을 만들지 않는다. 같은 ID의 다른 해시는 덮어쓰지 않는다. PC 업로드는 작은 파일 단위로 재시도하고, 오파에서 내려받기는 기존 HTTP Range 이어받기를 사용한다.
+- 전원 차단 복구 파일 표식을 PC까지 유지한다. 폰의 손상 파일은 오류로 표시하고 다른 정상 파일을 계속 전송한다. 폰·PC의 기존 원본을 자동 삭제하지 않는다.
+- PC는 기본 20 GiB 상한/2 GiB 여유 하한에서 기존 파일을 보존하고 수신을 중단한다. 폰은 기존 2 GiB/256 MiB 정책을 사용한다.
+- PC 확인 뒤 폰에서 원본을 삭제하지는 않지만, PC가 나중에 파일을 잃는 상황을 지속 재검사하지 않는다. PC 디스크 복구/이동 시 별도의 재검증·재전송 작업이 필요하다.
+- 선택적으로 새 수신 후 기존 PC 분석기를 실행한다. 분석 실패는 별도 상태 JSON에 남고 수신한 파일은 보존한다. 조향/제동 Params나 CAN 송신은 변경하지 않는다.
+
+## 검증
+
+- Android JVM: 기존 다운로드 5개와 PC 업로드/연결 설정 5개 테스트.
+- PC: 인증·PC/송신자 식별·무결성·중복·충돌·용량·복구 표식·압축 상한 등 10개 테스트.
+- 기존 정차 기록 13개로 Z13 Tailscale 주소에 바인딩한 수신기를 로컬에서 검증했고, 각 파일 재전송 13건도 중복 없이 처리했다. 테스트 출력은 격리된 임시 폴더였고 실운행 저장소는 변경하지 않았다.
+- 이 결과는 실폰 부팅 실행, 제조사 절전 정책, 폰→Z13 실제 통신망 경로, 알림/설정 화면 검증을 대체하지 않는다.
+
+공식 근거: [Android 전경 서비스 종류](https://developer.android.com/develop/background-work/services/fgs/service-types), [부팅 이벤트의 백그라운드 시작 예외](https://developer.android.com/develop/background-work/services/fgs/restrictions-bg-start), [WorkManager 예약·재시도](https://developer.android.com/develop/background-work/background-tasks/persistent/getting-started/define-work).

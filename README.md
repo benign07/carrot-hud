@@ -9,12 +9,12 @@ It does **not** re‑implement the HUD. It loads the device's own web HUD
 (`http://<device-ip>:7000/?view=hud`) inside a WebView, so the numbers always
 match the device and stay in sync with any web updates.
 
-This preparation branch also archives completed passive driving records while
-the HUD or overlay is in use. Transfers resume after reconnecting and are verified
-by length and SHA-256. Use **기록 내보내기** to export a ZIP for PC analysis.
-See [automatic recording details and limits](AUTOMATIC_RECORDING.md).
-It does not change steering/braking settings. Installation and phone validation
-are pending; the device-side automatic recorder is required.
+This preparation branch adds a boot-started OP connection service and independent
+authenticated phone-to-PC uploads over Tailscale. It retains the existing immutable
+record archive and ZIP export. See [boot and PC transfer setup](BOOT_PC_SYNC.md).
+The installed 1.0.11 archive baseline is described in [automatic recording](AUTOMATIC_RECORDING.md).
+The new boot/upload APK is not yet installed or verified on the phone. It does not
+change steering/braking settings; the device-side automatic recorder is required.
 
 | Button | Action |
 |--------|--------|
@@ -57,7 +57,7 @@ Your PC has no Android build tools, so build it on GitHub for free:
 
 ## Updates (in-app)
 
-Each CI build publishes a **GitHub Release** (tag `v<build#>`, with versionCode =
+Each main-branch CI build publishes a **GitHub Release** (tag `v<build#>`, with versionCode =
 build#) and attaches the APK. In the app, the **업데이트** button (device-list
 header) checks the latest release; if it's newer than the installed version it
 downloads and installs it.
@@ -79,8 +79,8 @@ press **Run** with your phone connected.
 
 - The phone needs a working network route to the comma device (Wi-Fi/hotspot or
   the device's Tailscale address). Completed automatic-recording chunks are kept
-  locally in this branch. Closing both HUD and overlay pauses phone transfers;
-  device recording continues, and reopening catches up.
+  locally in this branch. With automatic connection enabled, the connection service
+  and persistent jobs can continue without the HUD/overlay; OS restrictions can delay work.
 - HTTP (not HTTPS) is used on the LAN — this is why a native app is needed for
   the always‑on‑top overlay (browsers block that over plain HTTP).
 - `minSdk 26` (Android 8.0+), `targetSdk 33`.

@@ -6,11 +6,12 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
 
-data class ChunkInfo(val id: String, val bytes: Long, val sha256: String) {
+data class ChunkInfo(val id: String, val bytes: Long, val sha256: String, val reason: String = "phone_upload") {
     init {
         require(id.matches(Regex("[a-f0-9]{32}")))
         require(sha256.matches(Regex("[a-f0-9]{64}")))
         require(bytes in 1..4L * 1024 * 1024)
+        require(reason.matches(Regex("[a-zA-Z0-9_-]{1,64}")))
     }
 }
 

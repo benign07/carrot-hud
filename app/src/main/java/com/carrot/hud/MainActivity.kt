@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
     private val archiveHandler = Handler(Looper.getMainLooper())
     private val archiveStatus = object : Runnable {
         override fun run() {
-            findViewById<TextView>(R.id.archiveStatus)?.text = DriveArchive.status
+            findViewById<TextView>(R.id.archiveStatus)?.text = "${DriveArchive.status}\n${PcArchive.status}"
             archiveHandler.postDelayed(this, 2000)
         }
     }
@@ -56,6 +56,10 @@ class MainActivity : AppCompatActivity() {
         DeviceStore.setActive(this, device!!.id)
 
         setContentView(R.layout.activity_main)
+        ArchiveService.start(this)
+        findViewById<View>(R.id.btnArchiveSettings).setOnClickListener {
+            startActivity(Intent(this, ArchiveSettingsActivity::class.java))
+        }
         findViewById<View>(R.id.btnExportRecords).setOnClickListener {
             exportRecords.launch("carrot-drive-${System.currentTimeMillis()}.zip")
         }

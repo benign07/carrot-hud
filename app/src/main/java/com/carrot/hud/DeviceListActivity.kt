@@ -45,6 +45,7 @@ class DeviceListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ArchiveService.start(this)
         setContentView(R.layout.activity_devices)
         listView = findViewById(R.id.deviceList)
         emptyView = findViewById(R.id.empty)
@@ -74,7 +75,9 @@ class DeviceListActivity : AppCompatActivity() {
             val net = cm.activeNetwork ?: return false
             val caps = cm.getNetworkCapabilities(net) ?: return false
             caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
         } catch (e: Exception) {
             false
         }
@@ -177,10 +180,12 @@ class DeviceListActivity : AppCompatActivity() {
         val pm = PopupMenu(this, anchor)
         pm.menu.add(0, 1, 0, "업데이트 확인")
         pm.menu.add(0, 2, 1, "위젯 갱신 주기")
+        pm.menu.add(0, 3, 2, "자동 기록 · PC 전송")
         pm.setOnMenuItemClickListener {
             when (it.itemId) {
                 1 -> checkUpdate()
                 2 -> showIntervalDialog()
+                3 -> startActivity(Intent(this, ArchiveSettingsActivity::class.java))
             }
             true
         }

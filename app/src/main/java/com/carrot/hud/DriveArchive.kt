@@ -13,6 +13,7 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import java.util.concurrent.locks.ReentrantLock
 
 /** One native downloader shared by the visible HUD and existing overlay service. */
 object DriveArchive {
@@ -20,7 +21,8 @@ object DriveArchive {
     private val executor = Executors.newSingleThreadScheduledExecutor()
     private var future: ScheduledFuture<*>? = null
     private val checked = mutableMapOf<String, String>() // touched only by the single worker
-    @Volatile var status = "자동 보관 대기 · HUD/오버레이 사용 중 보관"
+    private val syncLock = ReentrantLock()
+    @Volatile var status = "오파 자동 연결 대기"
         private set
 
     fun root(context: Context) = File(context.noBackupFilesDir, "drive_records")
@@ -29,7 +31,7 @@ object DriveArchive {
         owners.add(owner)
         if (future == null) {
             val app = context.applicationContext
-            future = executor.scheduleWithFixedDelay({ sync(app) }, 0, 20, TimeUnit.SECONDS)
+            future = executor.scheduleWithFixedDelay({ syncOnce(app) { !active() } }, 0, 20, TimeUnit.SECONDS)
         }
     }
 
@@ -38,16 +40,16 @@ object DriveArchive {
         if (owners.isEmpty()) {
             future?.cancel(false)
             future = null
-            status = "휴대폰 보관 대기 · 기기 자동 기록은 계속됩니다"
+            status = "휴대폰 보관 대기 · 예약 연결 또는 HUD에서 재개"
         }
     }
 
     @Synchronized private fun active() = owners.isNotEmpty()
 
-    private fun sync(context: Context) {
-        if (!active()) return
+    fun syncOnce(context: Context, cancelled: () -> Boolean = { false }) {
+        if (cancelled() || !syncLock.tryLock()) return
         try {
-            val device = DeviceStore.getActive(context) ?: return
+            val device = DeviceStore.getActive(context) ?: run { status = "오파 기기 등록 필요"; return }
             val folder = root(context)
             folder.mkdirs()
             val base = "http://${device.ip}:${device.port}"
@@ -78,7 +80,7 @@ object DriveArchive {
             var bytesUsed = folder.listFiles()?.sumOf { it.length() } ?: 0L
             var downloaded = 0
             for (i in 0 until rows.length()) {
-                if (!active()) break
+                if (cancelled()) break
                 val row = rows.getJSONObject(i)
                 val info = ChunkInfo(row.getString("id"), row.getLong("bytes"), row.getString("sha256"))
                 val target = File(folder, "${info.id}.jsonl.gz")
@@ -106,9 +108,11 @@ object DriveArchive {
             }
             val count = folder.listFiles()?.count { it.name.endsWith(".manifest.json") } ?: 0
             status = "휴대폰 보관 $count 개 · ${bytesUsed / 1048576} MB · 기기 연결됨"
+            if (downloaded > 0) ArchiveJobs.request(context)
         } catch (_: Exception) {
-            status = "기기 연결/전송 대기 · 다음 연결 시 자동으로 이어받습니다"
-        }
+            val count = root(context).listFiles()?.count { it.name.endsWith(".manifest.json") } ?: 0
+            status = "오파 연결 대기 · 휴대폰 보관 $count 개 · PC 전송은 별도 진행"
+        } finally { syncLock.unlock() }
     }
 
     /** SAF destination selected by the user; source chunks remain on both devices. */

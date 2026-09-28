@@ -29,6 +29,12 @@
             android:textSize="11sp"
             android:text="자동 보관 대기" />
         <Button
+            android:id="@+id/btnArchiveSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:text="자동 기록·PC 전송" />
+        <Button
             android:id="@+id/btnExportRecords"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

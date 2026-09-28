@@ -31,7 +31,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text="변경은 정차/P·제어 해제 후"
+        android:text="탭하여 운행모드 변경"
         android:maxLines="3"
         android:textColor="#66FFFFFF"
         android:textSize="10sp" />

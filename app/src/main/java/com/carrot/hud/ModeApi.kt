@@ -18,7 +18,7 @@ class ModeApi(private val exchange: (String, String, String?) -> JSONObject) {
     private fun effective(): Int? = try { parseEffective(exchange("GET", "/api/live_runtime", null)) } catch (_: Exception) { null }
     fun read(): ModeResult = try {
         val value = saved()
-        ModeResult(value, effective(), "변경은 정차/P·제어 해제 후")
+        ModeResult(value, effective(), "탭하여 운행모드 변경")
     } catch (_: Exception) { ModeResult(null, null, "연결/모드 확인 실패") }
     fun cycle(): ModeResult {
         var current: Int? = null

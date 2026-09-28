@@ -178,7 +178,8 @@ class DeviceListActivity : AppCompatActivity() {
 
     private fun showMenu(anchor: View) {
         val pm = PopupMenu(this, anchor)
-        pm.menu.add(0, 1, 0, "업데이트 확인")
+        pm.menu.add(0, 1, 0, "HUD 앱 업데이트")
+        pm.menu.add(0, 4, 3, "오파 업데이트")
         pm.menu.add(0, 2, 1, "위젯 갱신 주기")
         pm.menu.add(0, 3, 2, "자동 기록 · PC 전송")
         pm.setOnMenuItemClickListener {
@@ -186,6 +187,7 @@ class DeviceListActivity : AppCompatActivity() {
                 1 -> checkUpdate()
                 2 -> showIntervalDialog()
                 3 -> startActivity(Intent(this, ArchiveSettingsActivity::class.java))
+                4 -> startActivity(Intent(this, OpUpdateActivity::class.java))
             }
             true
         }

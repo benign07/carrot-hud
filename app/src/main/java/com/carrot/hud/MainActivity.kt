@@ -66,6 +66,9 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
         ArchiveService.start(this)
+        findViewById<View>(R.id.btnOpUpdate).setOnClickListener {
+            startActivity(Intent(this, OpUpdateActivity::class.java))
+        }
         findViewById<View>(R.id.btnArchiveSettings).setOnClickListener {
             startActivity(Intent(this, ArchiveSettingsActivity::class.java))
         }

@@ -60,4 +60,13 @@ class ModeApiTest {
         assertNull(ModeApi.parseEffective(runtime(2).put("snapshotAgeMs", 1500)))
         assertNull(ModeApi.parseEffective(runtime(2).put("runtime", JSONObject())))
     }
+    @Test fun lostWriteResponseIsUnknownAndNeverAutomaticallyRetried() {
+        var posts = 0
+        val api = ModeApi { method, _, _ ->
+            if (method == "POST") { posts++; throw IOException("response lost") }
+            saved(3)
+        }
+        val result = api.cycle()
+        assertFalse(result.changed); assertNull(result.saved); assertEquals(1, posts)
+    }
 }

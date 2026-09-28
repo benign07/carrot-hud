@@ -22,19 +22,21 @@ class ModeApi(private val exchange: (String, String, String?) -> JSONObject) {
     } catch (_: Exception) { ModeResult(null, null, "연결/모드 확인 실패") }
     fun cycle(): ModeResult {
         var current: Int? = null
+        var writeAttempted = false
         return try {
             current = saved()
             val next = current % 4 + 1
+            writeAttempted = true
             val response = exchange("POST", "/api/param_set", JSONObject().put("name", "MyDrivingMode").put("value", next).toString())
             if (!response.optBoolean("ok") || !response.optBoolean("has_params") || response.optInt("value") != next) {
-                ModeResult(current, null, response.optString("error", "기기 저장 확인 실패"))
+                ModeResult(null, null, response.optString("error", "기기 저장 확인 실패"))
             } else {
                 val confirmed = saved()
                 if (confirmed == next) ModeResult(confirmed, effective(), "저장 확인 · 실제 모드는 별도 표시", true)
                 else ModeResult(confirmed, effective(), "저장값 불일치 · 다시 확인하세요")
             }
         } catch (error: ModeApiError) { ModeResult(current, null, error.message ?: "기기 요청 실패") }
-        catch (_: Exception) { ModeResult(current, null, "연결/응답 확인 실패 · 자동 재변경 없음") }
+        catch (_: Exception) { ModeResult(if (writeAttempted) null else current, null, "연결/응답 확인 실패 · 자동 재변경 없음") }
     }
     companion object {
         fun parseEffective(data: JSONObject): Int? {

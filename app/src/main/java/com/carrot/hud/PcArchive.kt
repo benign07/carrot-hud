@@ -47,6 +47,7 @@ object PcArchive {
                     continue
                 }
                 status = "PC 전송 중 · 완료 $completed / 대기 ${pending.size - sent - skipped}"
+                ArchiveWidgetStatus.publish(context)
                 try {
                     PcTransfer.upload(endpoint, info, file)
                     last = System.currentTimeMillis()
@@ -61,7 +62,7 @@ object PcArchive {
             }
             status = "PC 완료 $completed · 대기 ${pending.size - sent - skipped} · ${lastText(last)}" + if (damaged > 0) " · 기록 오류 $damaged" else ""
             return pending.size == sent + skipped
-        } finally { lock.unlock() }
+        } finally { lock.unlock(); ArchiveWidgetStatus.publish(context) }
     }
 
     private fun lastText(time: Long) = if (time == 0L) "전송 이력 없음" else "최근 ${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(time))}"

@@ -112,7 +112,7 @@ object DriveArchive {
         } catch (_: Exception) {
             val count = root(context).listFiles()?.count { it.name.endsWith(".manifest.json") } ?: 0
             status = "오파 연결 대기 · 휴대폰 보관 $count 개 · PC 전송은 별도 진행"
-        } finally { syncLock.unlock() }
+        } finally { syncLock.unlock(); ArchiveWidgetStatus.publish(context) }
     }
 
     /** SAF destination selected by the user; source chunks remain on both devices. */

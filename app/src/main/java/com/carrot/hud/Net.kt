@@ -34,24 +34,6 @@ object Net {
         }
     }
 
-    private fun httpPostJson(url: String, body: String, timeoutMs: Int): Boolean {
-        var c: HttpURLConnection? = null
-        return try {
-            c = (URL(url).openConnection() as HttpURLConnection).apply {
-                connectTimeout = timeoutMs; readTimeout = timeoutMs
-                requestMethod = "POST"; doOutput = true
-                setRequestProperty("Content-Type", "application/json")
-                setRequestProperty("User-Agent", "CarrotHud")
-            }
-            c.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
-            c.responseCode in 200..299
-        } catch (e: Exception) {
-            false
-        } finally {
-            try { c?.disconnect() } catch (_: Exception) {}
-        }
-    }
-
     fun isUp(device: Device, timeoutMs: Int = 1500): Boolean =
         httpGet("${base(device)}/api/heartbeat_status", timeoutMs) != null
 
@@ -76,28 +58,6 @@ object Net {
         } catch (e: Exception) {
             HudSnapshot(true, "--", "--")
         }
-    }
-
-    // ---------- driving mode ----------
-    fun readMode(device: Device, timeoutMs: Int = 1500): Int {
-        val txt = httpGet("${base(device)}/api/params_bulk?names=MyDrivingMode", timeoutMs) ?: return 0
-        return try { JSONObject(txt).optJSONObject("values")?.optInt("MyDrivingMode", 0) ?: 0 }
-        catch (e: Exception) { 0 }
-    }
-
-    fun setMode(device: Device, value: Int, timeoutMs: Int = 2500): Boolean =
-        httpPostJson(
-            "${base(device)}/api/param_set",
-            JSONObject().put("name", "MyDrivingMode").put("value", value.toString()).toString(),
-            timeoutMs
-        )
-
-    /** cycle 1->2->3->4->1 (same as the device's own logic); returns the new mode. */
-    fun cycleMode(device: Device): Int {
-        val cur = readMode(device)
-        val next = if (cur in 1..4) cur % 4 + 1 else 1
-        setMode(device, next)
-        return next
     }
 
     // ---------- auto-discovery (hotspot IP keeps changing) ----------

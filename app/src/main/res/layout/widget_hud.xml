@@ -95,4 +95,14 @@
         android:text="@string/status_checking"
         android:textColor="#99FFFFFF"
         android:textSize="11sp" />
+    <TextView
+        android:id="@+id/wTransfer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:maxLines="4"
+        android:ellipsize="end"
+        android:text="자동 기록·PC 전송 상태 대기"
+        android:textColor="#9EDDC6"
+        android:textSize="10sp" />
 </LinearLayout>

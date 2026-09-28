@@ -9,11 +9,12 @@
     android:padding="8dp">
 
     <TextView
+        android:id="@+id/modeTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/w_mode_title"
         android:textColor="#99FFFFFF"
-        android:textSize="12sp" />
+        android:textSize="10sp" />
 
     <TextView
         android:id="@+id/modeText"
@@ -22,14 +23,26 @@
         android:layout_marginTop="2dp"
         android:text="--"
         android:textColor="#FFFFFF"
-        android:textSize="30sp"
+        android:textSize="24sp"
         android:textStyle="bold" />
 
     <TextView
+        android:id="@+id/modeHint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text="@string/w_mode_tap"
+        android:text="변경은 정차/P·제어 해제 후"
+        android:maxLines="3"
         android:textColor="#66FFFFFF"
         android:textSize="10sp" />
+    <TextView
+        android:id="@+id/modeTransfer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:maxLines="4"
+        android:ellipsize="end"
+        android:text="자동 기록·PC 전송 상태 대기"
+        android:textColor="#9EDDC6"
+        android:textSize="9sp" />
 </LinearLayout>

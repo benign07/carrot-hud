@@ -27,7 +27,8 @@ class HudWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onDisabled(context: Context) {
-        cancel(context)
+        val mgr = AppWidgetManager.getInstance(context)
+        if (mgr.getAppWidgetIds(ComponentName(context, ModeWidgetProvider::class.java)).isEmpty()) cancel(context)
     }
 
     override fun onUpdate(context: Context, mgr: AppWidgetManager, ids: IntArray) {
@@ -47,6 +48,8 @@ class HudWidgetProvider : AppWidgetProvider() {
         if (intent.action == ACTION_REFRESH) {
             val mgr = AppWidgetManager.getInstance(context)
             val ids = mgr.getAppWidgetIds(ComponentName(context, HudWidgetProvider::class.java))
+            if (mgr.getAppWidgetIds(ComponentName(context, ModeWidgetProvider::class.java)).isNotEmpty())
+                context.sendBroadcast(Intent(context, ModeWidgetProvider::class.java).setAction(ModeWidgetProvider.ACTION_READ))
             val pending = goAsync()
             Thread {
                 try {
@@ -61,6 +64,7 @@ class HudWidgetProvider : AppWidgetProvider() {
 
     private fun renderWidget(context: Context, mgr: AppWidgetManager, id: Int) {
         val views = RemoteViews(context.packageName, R.layout.widget_hud)
+        ArchiveWidgetStatus.fill(context, views, R.id.wTransfer)
 
         views.setOnClickPendingIntent(
             R.id.wRoot,
@@ -94,7 +98,7 @@ class HudWidgetProvider : AppWidgetProvider() {
         if (resolved == null) {
             views.setTextViewText(R.id.wSpeed, "--")
             views.setTextViewText(R.id.wSetSpeed, "--")
-            views.setTextViewText(R.id.wStatus, "○ 오프라인 (앱·WiFi 확인)")
+            views.setTextViewText(R.id.wStatus, "○ 오파 연결 대기 (Tailscale/Wi-Fi)")
             views.setTextColor(R.id.wStatus, 0xFFE5534B.toInt())
             mgr.updateAppWidget(id, views)
             return
@@ -102,7 +106,7 @@ class HudWidgetProvider : AppWidgetProvider() {
         val snap = Net.fetchSnapshot(resolved)
         views.setTextViewText(R.id.wSpeed, snap.speed)
         views.setTextViewText(R.id.wSetSpeed, snap.setSpeed)
-        views.setTextViewText(R.id.wStatus, if (snap.online) "● 온라인" else "○ 오프라인 (앱·WiFi 확인)")
+        views.setTextViewText(R.id.wStatus, if (snap.online) "● 온라인" else "○ 오파 연결 대기 (Tailscale/Wi-Fi)")
         views.setTextColor(R.id.wStatus, if (snap.online) 0xFF3DDC84.toInt() else 0xFFE5534B.toInt())
         mgr.updateAppWidget(id, views)
     }
@@ -120,6 +124,9 @@ class HudWidgetProvider : AppWidgetProvider() {
 
         /** Schedule the next refresh alarm (self-repeating; called after each render). */
         fun scheduleNext(context: Context) {
+            val manager = AppWidgetManager.getInstance(context)
+            if (manager.getAppWidgetIds(ComponentName(context, HudWidgetProvider::class.java)).isEmpty() &&
+                manager.getAppWidgetIds(ComponentName(context, ModeWidgetProvider::class.java)).isEmpty()) return
             val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val interval = DeviceStore.getWidgetIntervalMs(context).coerceAtLeast(15_000L)
             val triggerAt = System.currentTimeMillis() + interval

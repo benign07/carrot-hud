@@ -77,6 +77,7 @@ object DriveArchive {
                 }
             } finally { connection.disconnect() }
             val rows = JSONObject(raw).getJSONArray("chunks")
+            OpUpdateMonitor.connected(context)
             var bytesUsed = folder.listFiles()?.sumOf { it.length() } ?: 0L
             var downloaded = 0
             for (i in 0 until rows.length()) {
@@ -110,6 +111,7 @@ object DriveArchive {
             status = "휴대폰 보관 $count 개 · ${bytesUsed / 1048576} MB · 기기 연결됨"
             if (downloaded > 0) ArchiveJobs.request(context)
         } catch (_: Exception) {
+            OpUpdateMonitor.disconnected()
             val count = root(context).listFiles()?.count { it.name.endsWith(".manifest.json") } ?: 0
             status = "오파 연결 대기 · 휴대폰 보관 $count 개 · PC 전송은 별도 진행"
         } finally { syncLock.unlock(); ArchiveWidgetStatus.publish(context) }

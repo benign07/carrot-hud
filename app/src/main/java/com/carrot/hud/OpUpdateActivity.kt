@@ -22,12 +22,7 @@ class OpUpdateActivity : AppCompatActivity() {
     private var state: JSONObject? = null
     private var preview: JSONObject? = null
     private fun pairing() = File(noBackupFilesDir, "op-update-pairing.json")
-    private fun endpoint(): OpEndpoint? = try {
-        OpEndpoint.parse(pairing().readText()).also { ep ->
-            val device = DeviceStore.getActive(this) ?: error("No active device")
-            require(ep.url == "http://${device.ip}:${device.port}")
-        }
-    } catch (_: Exception) { null }
+    private fun endpoint(): OpEndpoint? = OpUpdateMonitor.endpoint(this)
     private val importPairing = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) try {
             val raw = contentResolver.openInputStream(uri)!!.use { it.readBytesLimited(4096) }.toString(Charsets.UTF_8)
@@ -55,6 +50,7 @@ class OpUpdateActivity : AppCompatActivity() {
         status = text("기기 연결 확인 중")
         notes = text("새 버전과 변경점을 확인합니다.")
         button("새 버전·상태 확인") { refresh(true) }
+        text("자동 연결을 켜두면 폰 부팅 후 오파 연결·재연결 시 새 버전을 확인하고, 연결 중에는 15분 간격으로 확인합니다. 새 버전은 알림과 위젯에 표시하며, 같은 버전 알림은 한 번만 표시합니다. 자동 설치는 하지 않습니다.", 14f)
         queue = button("업데이트 예약 · P 정차 후 적용") { command("queue") }
         cancel = button("업데이트 예약 취소") { command("cancel") }
         queue.isEnabled = false; cancel.isEnabled = false
@@ -98,6 +94,7 @@ class OpUpdateActivity : AppCompatActivity() {
             var message = "오파 업데이트 기능 최초 설치·연결 등록이 필요합니다."
             try {
                 if (ep != null) result = if (check) OpUpdateApi.action(ep, "check") else OpUpdateApi.status(ep)
+                if (ep != null && result != null) OpUpdateMonitor.observe(applicationContext, ep, result!!)
             } catch (e: Exception) { message = if (e is OpUpdateException) e.message ?: "연결 대기" else "오파 연결 대기 · 설치 완료 여부는 재연결 후 확인합니다." }
             if (check && result == null) try { latest = OpUpdateApi.latest() } catch (_: Exception) { }
             runOnUiThread {
@@ -123,7 +120,7 @@ class OpUpdateActivity : AppCompatActivity() {
         Thread {
             var result: JSONObject? = null
             var error = "요청 응답을 받지 못했습니다. 상태를 확인합니다."
-            try { result = OpUpdateApi.action(ep, action, selected) }
+            try { result = OpUpdateApi.action(ep, action, selected); OpUpdateMonitor.observe(applicationContext, ep, result!!) }
             catch (e: Exception) { if (e is OpUpdateException) error = e.message ?: error }
             runOnUiThread {
                 busy.set(false)

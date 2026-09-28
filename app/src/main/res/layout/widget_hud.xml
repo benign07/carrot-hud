@@ -96,6 +96,15 @@
         android:textColor="#99FFFFFF"
         android:textSize="11sp" />
     <TextView
+        android:id="@+id/wUpdate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textColor="#FFD580"
+        android:textSize="11sp"
+        android:visibility="gone" />
+    <TextView
         android:id="@+id/wTransfer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

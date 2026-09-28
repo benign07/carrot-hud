@@ -12,14 +12,16 @@ match the device and stay in sync with any web updates.
 This preparation branch adds a boot-started OP connection service and independent
 authenticated phone-to-PC uploads over Tailscale. It retains the existing immutable
 record archive and ZIP export. See [boot and PC transfer setup](BOOT_PC_SYNC.md).
-The installed 1.0.11 archive baseline is described in [automatic recording](AUTOMATIC_RECORDING.md).
-The new boot/upload APK is not yet installed or verified on the phone. It does not
-change steering/braking settings; the device-side automatic recorder is required.
+The archive format is described in [automatic recording](AUTOMATIC_RECORDING.md).
+The phone was updated to 1.0.20 on 2026-09-28. Actual phone-to-PC receipt of 23 files
+and their hashes was verified. Phone reboot/HyperOS lifecycle validation remains pending.
+See [openpilot update setup](OP_UPDATES.md) for the new update reservation screen.
 
 | Button | Action |
 |--------|--------|
 | **오버레이** | Start the floating always‑on‑top mini‑HUD (asks for "display over other apps" once). Drag to move, ✕ to close. |
 | **설정** | Open the full CarrotPilot web app (settings / tools / terminal / logs). |
+| **오파 업데이트** | Read release notes, view history, and reserve an update for P/standstill with controls inactive. Initial device-side setup is required. |
 | **기기** | Open the device list (add / select / edit / remove devices by IP). |
 | **↻** | Reload the HUD. |
 

@@ -8,7 +8,11 @@ $ErrorActionPreference = 'Stop'
 $configPath = (Resolve-Path -LiteralPath $Config).Path
 $receiverPath = Join-Path $PSScriptRoot 'receiver.py'
 $pythonPath = (Get-Command $Python -ErrorAction Stop).Source
-$settings = Get-Content -Raw -LiteralPath $configPath | ConvertFrom-Json
+try {
+    $settings = Get-Content -Raw -Encoding UTF8 -LiteralPath $configPath | ConvertFrom-Json -ErrorAction Stop
+} catch {
+    throw 'Cannot read the private receiver configuration as UTF-8 JSON.'
+}
 if ($InstallAutostart) {
     $scriptPath = $MyInvocation.MyCommand.Path
     # Register only after this explicit switch; no credentials are placed in task arguments.

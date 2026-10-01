@@ -41,12 +41,12 @@ object ChunkTransfer {
     }
 
     fun verified(file: File, row: ChunkInfo): Boolean =
-        file.isFile && file.length() == row.bytes && digest(file) == row.sha256
+        storage { file.isFile && file.length() == row.bytes && digest(file) == row.sha256 }
 
     fun download(base: String, folder: File, row: ChunkInfo): File {
         if (!folder.isDirectory && !folder.mkdirs()) throw ChunkStorageException(IOException("Record directory unavailable"))
         val target = File(folder, "${row.id}.jsonl.gz")
-        if (storage { verified(target, row) }) return target
+        if (verified(target, row)) return target
         val partial = File(folder, "${row.id}.download")
         var offset = if (partial.exists()) partial.length() else 0L
         if (offset >= row.bytes) { removePartial(partial); offset = 0 }
@@ -62,7 +62,10 @@ object ChunkTransfer {
             val status = connection.responseCode
             if (status != 200 && status != 206) throw ChunkServerException(status)
             if (status == 206) {
-                if (connection.getHeaderField("Content-Range") != "bytes $offset-${row.bytes - 1}/${row.bytes}") throw ChunkIntegrityException("Content-Range mismatch")
+                if (connection.getHeaderField("Content-Range") != "bytes $offset-${row.bytes - 1}/${row.bytes}") {
+                    removePartial(partial) // Next pass retries a full immutable download.
+                    throw ChunkIntegrityException("Content-Range mismatch")
+                }
             } else offset = 0
             var received = offset
             val output = storage { FileOutputStream(partial, offset > 0) }
@@ -79,7 +82,7 @@ object ChunkTransfer {
                 }
                 storage { output.fd.sync() }
             } finally { storage { output.close() } }
-            if (!storage { verified(partial, row) }) {
+            if (!verified(partial, row)) {
                 removePartial(partial)
                 throw ChunkIntegrityException("Hash verification failed")
             }

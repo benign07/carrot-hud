@@ -7,7 +7,7 @@ import java.net.ServerSocket
 import java.net.InetAddress
 
 class NetSnapshotTest {
-    @Test fun heartbeatServerErrorsStillMeanTheRegisteredDeviceIsReachable() {
+    @Test fun heartbeatRequiresTheRealEndpointContractWithoutRedirects() {
         for ((code, validHeartbeat) in listOf(200 to true, 200 to false, 500 to false, 503 to false, 301 to false, 400 to false, 401 to false, 403 to false, 404 to false)) {
             val server = ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))
             val worker = Thread { server.accept().use { socket ->
@@ -18,7 +18,7 @@ class NetSnapshotTest {
                 socket.getOutputStream().apply { write("HTTP/1.1 $code Response\r\nContent-Length: ${body.size}\r\nConnection: close\r\n\r\n".toByteArray()); write(body); flush() }
             } }
             worker.start(); val port = server.localPort
-            try { assertEquals(code in listOf(500, 503) || code == 200 && validHeartbeat, Net.isUp(Device("fixture", "fixture", "127.0.0.1", port))) }
+            try { assertEquals(code == 200 && validHeartbeat, Net.isUp(Device("fixture", "fixture", "127.0.0.1", port))) }
             finally { server.close(); worker.join(3000) }
             assertFalse(Net.isUp(Device("fixture", "fixture", "127.0.0.1", port), 500))
         }

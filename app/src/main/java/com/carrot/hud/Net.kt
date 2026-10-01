@@ -43,7 +43,6 @@ object Net {
 
     fun isUp(device: Device, timeoutMs: Int = 1500): Boolean {
         val reply = httpReply("${base(device)}/api/heartbeat_status", timeoutMs) ?: return false
-        if (reply.code in listOf(500, 503)) return true
         if (reply.code != 200 || reply.body == null) return false
         return try { val heartbeat = JSONObject(reply.body); heartbeat.opt("ok") == true && heartbeat.has("hb") }
         catch (_: Exception) { false }

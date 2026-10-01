@@ -87,6 +87,9 @@ class ChunkTransferTest {
         File(root, "${row.id}.download").writeBytes(payload.copyOfRange(0, 3))
         assertThrows(ChunkIntegrityException::class.java) { fetch() }
         assertFalse(File(root, "${row.id}.jsonl.gz").exists())
+        assertFalse(File(root, "${row.id}.download").exists())
+        mode = "range"
+        assertArrayEquals(payload, fetch().readBytes())
     }
 
     @Test fun serverErrorIsNotHashFailureAndNeverPublishes() {

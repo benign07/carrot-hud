@@ -22,6 +22,8 @@ object DriveArchive {
     private var future: ScheduledFuture<*>? = null
     private val checked = mutableMapOf<String, String>() // touched only by the single worker
     private val syncLock = ReentrantLock()
+    private var cursor = ArchiveBatchCursor()
+    private var cursorEndpoint = ""
     @Volatile var status = "오파 자동 연결 대기"
         private set
 
@@ -85,18 +87,22 @@ object DriveArchive {
             OpUpdateMonitor.connected(context)
             var bytesUsed = folder.listFiles()?.sumOf { it.length() } ?: 0L
             var downloaded = 0
-            for (i in 0 until rows.length()) {
-                if (cancelled()) break
+            var chunkFailures = 0
+            var lastChunkError: Exception? = null
+            var storageFull = false
+            if (cursorEndpoint != base) { cursorEndpoint = base; cursor = ArchiveBatchCursor() }
+            cursor.run(rows.length(), cancelled = cancelled) { i ->
+              try {
                 stage = ArchiveStage.DOWNLOAD
                 val row = rows.getJSONObject(i)
                 val info = ChunkInfo(row.getString("id"), row.getLong("bytes"), row.getString("sha256"))
                 val target = File(folder, "${info.id}.jsonl.gz")
                 val signature = "${info.sha256}:${target.length()}:${target.lastModified()}"
-                if (checked[info.id] == signature) continue
+                if (checked[info.id] == signature) return@run ArchiveBatchCursor.Visit.CACHED
                 if (!ChunkTransfer.verified(target, info)) {
                     if (bytesUsed + info.bytes > 2L * 1024 * 1024 * 1024 || folder.usableSpace < 256L * 1024 * 1024 + info.bytes) {
-                        status = "보관 공간 부족 · 기존 기록 보존 중 · PC로 내보내세요"
-                        return
+                        storageFull = true
+                        return@run ArchiveBatchCursor.Visit.STOP
                     }
                     status = "주행 기록 자동 보관 중…"
                     ChunkTransfer.download(base, folder, info)
@@ -112,11 +118,23 @@ object DriveArchive {
                 }
                 java.nio.file.Files.move(temporary.toPath(), manifest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
                 checked[info.id] = "${info.sha256}:${target.length()}:${target.lastModified()}"
-                if (downloaded >= 6) break
+                ArchiveBatchCursor.Visit.ATTEMPTED
+              } catch (error: Exception) {
+                // Keep local storage failures fatal; preserve old files and pause.
+                if (error is ChunkStorageException || stage == ArchiveStage.MANIFEST) throw error
+                if (error !is ChunkServerException && error !is ChunkIntegrityException &&
+                    error !is org.json.JSONException && error !is IllegalArgumentException &&
+                    error !is java.io.IOException) throw error
+                chunkFailures++
+                lastChunkError = error
+                ArchiveBatchCursor.Visit.ATTEMPTED
+              }
             }
+            if (downloaded > 0) ArchiveJobs.request(context)
+            if (storageFull) { status = "보관 공간 부족 · 기존 기록 보존 중 · PC로 내보내세요"; return }
             val count = folder.listFiles()?.count { it.name.endsWith(".manifest.json") } ?: 0
             status = "휴대폰 보관 $count 개 · ${bytesUsed / 1048576} MB · 기기 연결됨"
-            if (downloaded > 0) ArchiveJobs.request(context)
+            lastChunkError?.let { status = ArchiveFailure.message(it, ArchiveStage.DOWNLOAD, true, count) + " · 실패 $chunkFailures 개, 다음 기록 계속 보관" }
         } catch (error: Exception) {
             if (!deviceResponded && stage == ArchiveStage.INDEX) OpUpdateMonitor.disconnected()
             val count = root(context).listFiles()?.count { it.name.endsWith(".manifest.json") } ?: 0

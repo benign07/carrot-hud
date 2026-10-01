@@ -11,6 +11,9 @@ class ArchiveFailureTest {
         assertTrue(text.startsWith("휴대폰 기록 저장 오류"))
         assertFalse(text.startsWith("오파 연결 대기"))
     }
+    @Test fun vanishedDeviceMidPassIsConnectionWaitEvenAfterAnEarlierResponse() {
+        assertTrue(ArchiveFailure.message(ChunkConnectionException(IOException()), ArchiveStage.DOWNLOAD, true, 3).startsWith("오파 연결 대기"))
+    }
     @Test fun downloadErrorsHaveTypedServerStorageAndIntegrityReasons() {
         assertTrue(ArchiveFailure.message(ChunkServerException(500), ArchiveStage.DOWNLOAD, true, 3).startsWith("기기 기록 응답 오류"))
         assertTrue(ArchiveFailure.message(ChunkStorageException(IOException()), ArchiveStage.DOWNLOAD, true, 3).startsWith("휴대폰 기록 저장 오류"))

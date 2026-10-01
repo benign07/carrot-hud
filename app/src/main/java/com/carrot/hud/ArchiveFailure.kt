@@ -10,6 +10,7 @@ object ArchiveFailure {
     fun message(error: Exception, stage: ArchiveStage, deviceResponded: Boolean, count: Int): String {
         val reason = when {
             stage == ArchiveStage.STORAGE || stage == ArchiveStage.MANIFEST -> "휴대폰 기록 저장 오류 · 재시도 대기"
+            error is ChunkConnectionException -> "오파 연결 대기"
             error is ChunkStorageException -> "휴대폰 기록 저장 오류 · 재시도 대기"
             error is ChunkServerException -> "기기 기록 응답 오류 · 재시도 대기"
             error is ChunkIntegrityException -> "기록 무결성 확인 실패 · 재시도 대기"

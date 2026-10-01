@@ -16,8 +16,9 @@ data class ChunkInfo(val id: String, val bytes: Long, val sha256: String, val re
     }
 }
 
+class ChunkConnectionException(cause: IOException) : IOException("기기 응답 대기", cause)
 class ChunkServerException(val status: Int) : IOException("HTTP $status")
-class ChunkStorageException(cause: IOException) : IOException("Phone record storage failed", cause)
+class ChunkStorageException(cause: IOException) : IOException("휴대폰 기록 저장소 오류", cause)
 class ChunkIntegrityException(message: String) : IllegalStateException(message)
 
 /** Immutable chunk transfer. Only a matching length AND hash become a final file. */
@@ -59,7 +60,7 @@ object ChunkTransfer {
             connection.useCaches = false
             connection.setRequestProperty("Accept-Encoding", "identity")
             if (offset > 0) connection.setRequestProperty("Range", "bytes=$offset-")
-            val status = connection.responseCode
+            val status = try { connection.responseCode } catch (error: IOException) { throw ChunkConnectionException(error) }
             if (status != 200 && status != 206) throw ChunkServerException(status)
             if (status == 206) {
                 if (connection.getHeaderField("Content-Range") != "bytes $offset-${row.bytes - 1}/${row.bytes}") {

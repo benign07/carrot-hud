@@ -92,6 +92,11 @@ class ChunkTransferTest {
         assertArrayEquals(payload, fetch().readBytes())
     }
 
+    @Test fun noResponseIsConnectionFailureAndDoesNotPublish() {
+        server.close(); worker.join(3000)
+        assertThrows(ChunkConnectionException::class.java) { fetch() }
+        assertFalse(File(root, "${row.id}.jsonl.gz").exists())
+    }
     @Test fun serverErrorIsNotHashFailureAndNeverPublishes() {
         mode = "http-error"
         val error = assertThrows(ChunkServerException::class.java) { fetch() }

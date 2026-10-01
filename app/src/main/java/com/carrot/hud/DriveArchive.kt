@@ -92,6 +92,7 @@ object DriveArchive {
             var storageFull = false
             if (cursorEndpoint != base) { cursorEndpoint = base; cursor = ArchiveBatchCursor() }
             cursor.run(rows.length(), cancelled = cancelled) { i ->
+              var downloadAttempted = false
               try {
                 stage = ArchiveStage.DOWNLOAD
                 val row = rows.getJSONObject(i)
@@ -105,6 +106,7 @@ object DriveArchive {
                         return@run ArchiveBatchCursor.Visit.STOP
                     }
                     status = "주행 기록 자동 보관 중…"
+                    downloadAttempted = true
                     ChunkTransfer.download(base, folder, info)
                     bytesUsed += info.bytes
                     downloaded++
@@ -118,8 +120,15 @@ object DriveArchive {
                 }
                 java.nio.file.Files.move(temporary.toPath(), manifest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
                 checked[info.id] = "${info.sha256}:${target.length()}:${target.lastModified()}"
-                ArchiveBatchCursor.Visit.ATTEMPTED
+                // Local re-verification after process restart does not consume
+                // the network budget or delay newly arrived records by minutes.
+                if (downloadAttempted) ArchiveBatchCursor.Visit.ATTEMPTED else ArchiveBatchCursor.Visit.CACHED
               } catch (error: Exception) {
+                if (error is ChunkConnectionException) {
+                    deviceResponded = false
+                    OpUpdateMonitor.disconnected()
+                    throw error // Stop the pass when no HTTP response was received.
+                }
                 // Keep local storage failures fatal; preserve old files and pause.
                 if (error is ChunkStorageException || stage == ArchiveStage.MANIFEST) throw error
                 if (error !is ChunkServerException && error !is ChunkIntegrityException &&

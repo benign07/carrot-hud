@@ -33,6 +33,9 @@ object PcArchive {
                     val ack = try { JSONObject(receipt.readText()) } catch (_: Exception) { null }
                     if (ack != null && ack.optString("sha256") == info.sha256 && ack.optLong("bytes") == info.bytes) completed++
                     else pending.add(info to File(folder, "${info.id}.jsonl.gz"))
+                } catch (_: java.io.IOException) {
+                    status = "휴대폰 기록 읽기 오류 · PC 전송 재시도 대기"
+                    return false
                 } catch (_: Exception) { damaged++ }
             }
             val prefs = context.getSharedPreferences("archive_status", Context.MODE_PRIVATE)
@@ -42,7 +45,12 @@ object PcArchive {
             val deadline = android.os.SystemClock.elapsedRealtime() + 120_000
             for ((info, file) in pending) {
                 if (cancelled() || android.os.SystemClock.elapsedRealtime() >= deadline || sent >= 24) break
-                if (!try { ChunkTransfer.verified(file, info) } catch (_: Exception) { false }) {
+                val verified = try { ChunkTransfer.verified(file, info) }
+                    catch (_: ChunkStorageException) {
+                        status = "휴대폰 기록 읽기 오류 · PC 전송 재시도 대기"
+                        return false
+                    } catch (_: Exception) { false }
+                if (!verified) {
                     damaged++; skipped++
                     continue
                 }

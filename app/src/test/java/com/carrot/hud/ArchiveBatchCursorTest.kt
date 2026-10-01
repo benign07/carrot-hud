@@ -22,6 +22,15 @@ class ArchiveBatchCursorTest {
         cursor.run(4, 1) { index -> seen.add(index); if (index == 1) ArchiveBatchCursor.Visit.CACHED else ArchiveBatchCursor.Visit.ATTEMPTED }
         assertEquals(listOf(1,2), seen)
     }
+    @Test fun localRevalidationOfHundredsOfRecordsDoesNotDelayNewDownloads() {
+        val cursor = ArchiveBatchCursor(); val local = mutableListOf<Int>(); val requests = mutableListOf<Int>()
+        cursor.run(513) { index ->
+            if (index < 500) { local.add(index); ArchiveBatchCursor.Visit.CACHED }
+            else { requests.add(index); ArchiveBatchCursor.Visit.ATTEMPTED }
+        }
+        assertEquals(500, local.size)
+        assertEquals(listOf(500,501,502,503,504,505), requests)
+    }
     @Test fun stopCancellationAndChangedListRemainBounded() {
         val cursor = ArchiveBatchCursor(); var calls = 0
         cursor.run(0) { calls++; ArchiveBatchCursor.Visit.ATTEMPTED }

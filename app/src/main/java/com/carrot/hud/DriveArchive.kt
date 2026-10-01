@@ -48,10 +48,13 @@ object DriveArchive {
 
     fun syncOnce(context: Context, cancelled: () -> Boolean = { false }) {
         if (cancelled() || !syncLock.tryLock()) return
+        var deviceResponded = false
+        var stage = ArchiveStage.STORAGE
         try {
             val device = DeviceStore.getActive(context) ?: run { status = "오파 기기 등록 필요"; return }
             val folder = root(context)
-            folder.mkdirs()
+            if (!folder.isDirectory && !folder.mkdirs()) throw java.io.IOException("record directory unavailable")
+            stage = ArchiveStage.INDEX
             val base = "http://${device.ip}:${device.port}"
             val connection = URL("$base/api/automatic_drive/chunks").openConnection() as HttpURLConnection
             val raw = try {
@@ -59,11 +62,13 @@ object DriveArchive {
                 connection.readTimeout = 10000
                 connection.instanceFollowRedirects = false
                 connection.useCaches = false
-                if (connection.responseCode == 404) {
+                val response = connection.responseCode
+                deviceResponded = true
+                if (response == 404) {
                     status = "기기 자동 기록 업데이트 대기"
                     return
                 }
-                require(connection.responseCode == 200)
+                require(response == 200)
                 connection.inputStream.use { stream ->
                     val bytes = ByteArrayOutputStream()
                     val buffer = ByteArray(8192)
@@ -82,6 +87,7 @@ object DriveArchive {
             var downloaded = 0
             for (i in 0 until rows.length()) {
                 if (cancelled()) break
+                stage = ArchiveStage.DOWNLOAD
                 val row = rows.getJSONObject(i)
                 val info = ChunkInfo(row.getString("id"), row.getLong("bytes"), row.getString("sha256"))
                 val target = File(folder, "${info.id}.jsonl.gz")
@@ -97,6 +103,7 @@ object DriveArchive {
                     bytesUsed += info.bytes
                     downloaded++
                 }
+                stage = ArchiveStage.MANIFEST
                 val manifest = File(folder, "${info.id}.manifest.json")
                 val temporary = File(folder, "${info.id}.manifest.tmp")
                 FileOutputStream(temporary).use { stream ->
@@ -110,10 +117,10 @@ object DriveArchive {
             val count = folder.listFiles()?.count { it.name.endsWith(".manifest.json") } ?: 0
             status = "휴대폰 보관 $count 개 · ${bytesUsed / 1048576} MB · 기기 연결됨"
             if (downloaded > 0) ArchiveJobs.request(context)
-        } catch (_: Exception) {
-            OpUpdateMonitor.disconnected()
+        } catch (error: Exception) {
+            if (!deviceResponded && stage == ArchiveStage.INDEX) OpUpdateMonitor.disconnected()
             val count = root(context).listFiles()?.count { it.name.endsWith(".manifest.json") } ?: 0
-            status = "오파 연결 대기 · 휴대폰 보관 $count 개 · PC 전송은 별도 진행"
+            status = ArchiveFailure.message(error, stage, deviceResponded, count)
         } finally { syncLock.unlock(); ArchiveWidgetStatus.publish(context) }
     }
 

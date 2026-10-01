@@ -106,7 +106,11 @@ class HudWidgetProvider : AppWidgetProvider() {
         val snap = Net.fetchSnapshot(resolved)
         views.setTextViewText(R.id.wSpeed, snap.speed)
         views.setTextViewText(R.id.wSetSpeed, snap.setSpeed)
-        views.setTextViewText(R.id.wStatus, if (snap.online) "● 온라인" else "○ 오파 연결 대기 (Tailscale/Wi-Fi)")
+        views.setTextViewText(R.id.wStatus, when {
+            !snap.online -> "○ 기기 연결 대기 (Tailscale/Wi-Fi)"
+            !snap.dataFresh -> "● 기기 연결됨 · 주행 데이터 대기"
+            else -> "● 기기 연결됨"
+        })
         views.setTextColor(R.id.wStatus, if (snap.online) 0xFF3DDC84.toInt() else 0xFFE5534B.toInt())
         mgr.updateAppWidget(id, views)
     }

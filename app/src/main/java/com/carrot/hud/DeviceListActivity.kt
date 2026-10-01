@@ -11,6 +11,8 @@ import android.widget.ProgressBar
 import android.widget.Toast
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.InputType
 import android.view.View
 import android.view.ViewGroup
@@ -42,6 +44,15 @@ class DeviceListActivity : AppCompatActivity() {
     private var devices: List<Device> = emptyList()
     private val status = HashMap<String, Boolean?>() // id -> null=checking, true=online, false=offline
     private val io: ExecutorService = Executors.newFixedThreadPool(4)
+    private val handler = Handler(Looper.getMainLooper())
+    private var checkGeneration = 0L
+    private val refreshTicker = object : Runnable {
+        override fun run() {
+            wifiBanner.visibility = if (isOnNetwork()) View.GONE else View.VISIBLE
+            refresh()
+            handler.postDelayed(this, 20_000)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +77,13 @@ class DeviceListActivity : AppCompatActivity() {
         super.onResume()
         wifiBanner.visibility = if (isOnNetwork()) View.GONE else View.VISIBLE
         refresh()
+        handler.postDelayed(refreshTicker, 20_000)
+    }
+
+    override fun onPause() {
+        handler.removeCallbacks(refreshTicker)
+        checkGeneration++ // Ignore responses from a previous visible check.
+        super.onPause()
     }
 
     /** True if the phone is on Wi-Fi/Ethernet — i.e. it can reach a LAN device. */
@@ -85,18 +103,21 @@ class DeviceListActivity : AppCompatActivity() {
 
     private fun refresh() {
         devices = DeviceStore.getDevices(this)
+        val generation = ++checkGeneration
+        status.keys.retainAll(devices.map { it.id }.toSet())
         emptyView.visibility = if (devices.isEmpty()) View.VISIBLE else View.GONE
         adapter.notifyDataSetChanged()
         for (d in devices) {
-            status[d.id] = null
-            checkDevice(d)
+            if (d.id !in status) status[d.id] = null
+            checkDevice(d, generation)
         }
     }
 
-    private fun checkDevice(d: Device) {
+    private fun checkDevice(d: Device, generation: Long) {
         io.execute {
             val up = Net.isUp(d)
             runOnUiThread {
+                if (isFinishing || isDestroyed || generation != checkGeneration) return@runOnUiThread
                 status[d.id] = up
                 adapter.notifyDataSetChanged()
             }
@@ -171,6 +192,7 @@ class DeviceListActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        handler.removeCallbacksAndMessages(null)
         io.shutdownNow()
     }
 

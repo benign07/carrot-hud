@@ -113,7 +113,8 @@ class NetSnapshotTest {
         assertEquals("32", parse(row).speed)
         car.put("vEgo", 0.0)
         assertTrue(parse(row).dataFresh); assertEquals("0", parse(row).speed)
-        car.put("vEgo", -1.0); assertWaiting(row)
+        car.put("vEgo", -1.0); assertTrue(parse(row).dataFresh); assertEquals("4", parse(row).speed)
+        car.put("vEgo", "NaN"); assertWaiting(row)
     }
     @Test fun discoveryRequiresAnActualNonEmptyDongleIdentity() {
         for (raw in listOf("<html>unrelated server</html>", "{}", "{\"values\":{}}", "{\"values\":{\"DongleId\":null}}", "{\"values\":{\"DongleId\":\" \"}}", "{\"values\":{\"DongleId\":123}}")) {

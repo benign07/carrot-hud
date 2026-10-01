@@ -71,7 +71,7 @@ object Net {
             val cs = services.optJSONObject("carState") ?: return waiting
             if (cs.opt("canValid") != true || cs.opt("canTimeout") == true) return waiting
             fun number(row: JSONObject, name: String): Double? =
-                (row.opt(name) as? Number)?.toDouble()?.takeIf { it.isFinite() && it >= 0 }
+                (row.opt(name) as? Number)?.toDouble()?.takeIf { it.isFinite() }
             val speed = number(cs, "vEgoCluster") ?: number(cs, "vEgo") ?: return waiting
             // The actual compact server schema carries vCruiseCluster in km/h;
             // legacy/full schemas may additionally carry cruiseState.speed m/s.
@@ -79,7 +79,7 @@ object Net {
             val cruise = cs.optJSONObject("cruiseState")?.let { number(it, "speed") }?.takeIf { it > 0 }
             val desired = if (fresh("carrotMan")) services.optJSONObject("carrotMan")?.let { number(it, "desiredSpeed") }?.takeIf { it > 0 } else null
             val set = cluster?.let { Math.round(it).toString() } ?: cruise?.let { Math.round(it * 3.6).toString() } ?: desired?.let { Math.round(it).toString() } ?: "--"
-            HudSnapshot(true, Math.round(speed * 3.6).toString(), set, true)
+            HudSnapshot(true, Math.round(kotlin.math.abs(speed) * 3.6).toString(), set, true)
         } catch (_: Exception) { waiting }
     }
 

@@ -1,5 +1,6 @@
 package com.carrot.hud
 
+import java.io.IOException
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
@@ -15,8 +16,17 @@ data class ChunkInfo(val id: String, val bytes: Long, val sha256: String, val re
     }
 }
 
+class ChunkServerException(val status: Int) : IOException("HTTP $status")
+class ChunkStorageException(cause: IOException) : IOException("Phone record storage failed", cause)
+class ChunkIntegrityException(message: String) : IllegalStateException(message)
+
 /** Immutable chunk transfer. Only a matching length AND hash become a final file. */
 object ChunkTransfer {
+    private fun <T> storage(action: () -> T): T = try { action() }
+        catch (error: IOException) { throw ChunkStorageException(error) }
+    private fun removePartial(file: File) {
+        if (file.exists() && !file.delete()) throw ChunkStorageException(IOException("Partial file could not be removed"))
+    }
     fun digest(file: File): String {
         val hash = MessageDigest.getInstance("SHA-256")
         file.inputStream().use { stream ->
@@ -34,12 +44,12 @@ object ChunkTransfer {
         file.isFile && file.length() == row.bytes && digest(file) == row.sha256
 
     fun download(base: String, folder: File, row: ChunkInfo): File {
-        folder.mkdirs()
+        if (!folder.isDirectory && !folder.mkdirs()) throw ChunkStorageException(IOException("Record directory unavailable"))
         val target = File(folder, "${row.id}.jsonl.gz")
-        if (verified(target, row)) return target
+        if (storage { verified(target, row) }) return target
         val partial = File(folder, "${row.id}.download")
         var offset = if (partial.exists()) partial.length() else 0L
-        if (offset >= row.bytes) { check(partial.delete()); offset = 0 }
+        if (offset >= row.bytes) { removePartial(partial); offset = 0 }
         val connection = URL("${base.trimEnd('/')}/api/automatic_drive/chunks/${row.id}")
             .openConnection() as HttpURLConnection
         try {
@@ -50,29 +60,30 @@ object ChunkTransfer {
             connection.setRequestProperty("Accept-Encoding", "identity")
             if (offset > 0) connection.setRequestProperty("Range", "bytes=$offset-")
             val status = connection.responseCode
-            require(status == 200 || status == 206) { "HTTP $status" }
+            if (status != 200 && status != 206) throw ChunkServerException(status)
             if (status == 206) {
-                require(connection.getHeaderField("Content-Range") == "bytes $offset-${row.bytes - 1}/${row.bytes}")
+                if (connection.getHeaderField("Content-Range") != "bytes $offset-${row.bytes - 1}/${row.bytes}") throw ChunkIntegrityException("Content-Range mismatch")
             } else offset = 0
             var received = offset
-            FileOutputStream(partial, offset > 0).use { output ->
+            val output = storage { FileOutputStream(partial, offset > 0) }
+            try {
                 connection.inputStream.use { input ->
                     val buffer = ByteArray(64 * 1024)
                     while (true) {
                         val count = input.read(buffer)
                         if (count < 0) break
                         received += count
-                        require(received <= row.bytes) { "Oversized chunk" }
-                        output.write(buffer, 0, count)
+                        if (received > row.bytes) throw ChunkIntegrityException("Oversized chunk")
+                        storage { output.write(buffer, 0, count) }
                     }
                 }
-                output.fd.sync()
+                storage { output.fd.sync() }
+            } finally { storage { output.close() } }
+            if (!storage { verified(partial, row) }) {
+                removePartial(partial)
+                throw ChunkIntegrityException("Hash verification failed")
             }
-            if (!verified(partial, row)) {
-                partial.delete()
-                error("Hash verification failed")
-            }
-            java.nio.file.Files.move(partial.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            storage { java.nio.file.Files.move(partial.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING) }
             return target
         } finally {
             connection.disconnect()

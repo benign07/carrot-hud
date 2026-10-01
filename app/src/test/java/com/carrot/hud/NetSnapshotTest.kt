@@ -8,16 +8,17 @@ import java.net.InetAddress
 
 class NetSnapshotTest {
     @Test fun heartbeatServerErrorsStillMeanTheRegisteredDeviceIsReachable() {
-        for (code in listOf(200, 500, 503)) {
+        for ((code, validHeartbeat) in listOf(200 to true, 200 to false, 500 to false, 503 to false, 301 to false, 400 to false, 401 to false, 403 to false, 404 to false)) {
             val server = ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))
             val worker = Thread { server.accept().use { socket ->
                 socket.soTimeout = 3000
                 val input = socket.getInputStream().bufferedReader()
                 while (!input.readLine().isNullOrEmpty()) { }
-                socket.getOutputStream().apply { write("HTTP/1.1 $code Response\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".toByteArray()); flush() }
+                val body = (if (validHeartbeat) "{\"ok\":true,\"hb\":null}" else "<html>unrelated server</html>").toByteArray()
+                socket.getOutputStream().apply { write("HTTP/1.1 $code Response\r\nContent-Length: ${body.size}\r\nConnection: close\r\n\r\n".toByteArray()); write(body); flush() }
             } }
             worker.start(); val port = server.localPort
-            try { assertTrue(Net.isUp(Device("fixture", "fixture", "127.0.0.1", port))) }
+            try { assertEquals(code in listOf(500, 503) || code == 200 && validHeartbeat, Net.isUp(Device("fixture", "fixture", "127.0.0.1", port))) }
             finally { server.close(); worker.join(3000) }
             assertFalse(Net.isUp(Device("fixture", "fixture", "127.0.0.1", port), 500))
         }

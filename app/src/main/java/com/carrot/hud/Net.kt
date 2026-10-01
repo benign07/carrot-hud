@@ -26,7 +26,7 @@ object Net {
         return try {
             c = (URL(url).openConnection() as HttpURLConnection).apply {
                 connectTimeout = timeoutMs; readTimeout = timeoutMs
-                requestMethod = "GET"; useCaches = false
+                requestMethod = "GET"; useCaches = false; instanceFollowRedirects = false
                 setRequestProperty("User-Agent", "CarrotHud")
             }
             val receivedCode = c.responseCode
@@ -41,8 +41,13 @@ object Net {
 
     private fun httpGet(url: String, timeoutMs: Int): String? = httpReply(url, timeoutMs)?.takeIf { it.code == 200 }?.body
 
-    fun isUp(device: Device, timeoutMs: Int = 1500): Boolean =
-        httpReply("${base(device)}/api/heartbeat_status", timeoutMs) != null
+    fun isUp(device: Device, timeoutMs: Int = 1500): Boolean {
+        val reply = httpReply("${base(device)}/api/heartbeat_status", timeoutMs) ?: return false
+        if (reply.code in listOf(500, 503)) return true
+        if (reply.code != 200 || reply.body == null) return false
+        return try { val heartbeat = JSONObject(reply.body); heartbeat.opt("ok") == true && heartbeat.has("hb") }
+        catch (_: Exception) { false }
+    }
 
     fun fetchSnapshot(device: Device, timeoutMs: Int = 2500): HudSnapshot {
         val reply = httpReply("${base(device)}/api/live_runtime", timeoutMs)

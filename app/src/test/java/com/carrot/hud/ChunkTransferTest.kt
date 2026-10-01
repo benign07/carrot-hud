@@ -43,7 +43,7 @@ class ChunkTransferTest {
                         val partial = range != null && mode != "ignore"
                         val contentRange = if (!partial) "" else "Content-Range: " +
                             (if (mode == "bad-range") "bytes 9-12/13" else "bytes $offset-${payload.size - 1}/${payload.size}") + "\r\n"
-                        val headers = "HTTP/1.1 ${if (partial) "206 Partial Content" else "200 OK"}\r\n" +
+                        val headers = "HTTP/1.1 ${if (mode == "http-error") "500 Server Error" else if (partial) "206 Partial Content" else "200 OK"}\r\n" +
                             "Content-Length: ${body.size}\r\n${contentRange}Connection: close\r\n\r\n"
                         socket.getOutputStream().apply { write(headers.toByteArray()); write(body); flush() }
                     }
@@ -78,17 +78,29 @@ class ChunkTransferTest {
 
     @Test fun badHashIsNeverPublished() {
         mode = "corrupt"
-        assertThrows(IllegalStateException::class.java) { fetch() }
+        assertThrows(ChunkIntegrityException::class.java) { fetch() }
         assertFalse(File(root, "${row.id}.jsonl.gz").exists())
     }
 
     @Test fun badRangeIsRejected() {
         mode = "bad-range"
         File(root, "${row.id}.download").writeBytes(payload.copyOfRange(0, 3))
-        assertThrows(IllegalArgumentException::class.java) { fetch() }
+        assertThrows(ChunkIntegrityException::class.java) { fetch() }
         assertFalse(File(root, "${row.id}.jsonl.gz").exists())
     }
 
+    @Test fun serverErrorIsNotHashFailureAndNeverPublishes() {
+        mode = "http-error"
+        val error = assertThrows(ChunkServerException::class.java) { fetch() }
+        assertEquals(500, error.status)
+        assertFalse(File(root, "${row.id}.jsonl.gz").exists())
+    }
+    @Test fun localDirectoryFailureIsTypedStorageAndMakesNoRequest() {
+        val blocked = File(root, "not-a-directory").apply { writeText("preserved") }
+        assertThrows(ChunkStorageException::class.java) { ChunkTransfer.download("http://127.0.0.1:${server.localPort}", blocked, row) }
+        assertEquals(0, requests)
+        assertEquals("preserved", blocked.readText())
+    }
     @Test fun invalidIdentifiersAndOversizeAreRejected() {
         assertThrows(IllegalArgumentException::class.java) { ChunkInfo("../evil", 10, row.sha256) }
         assertThrows(IllegalArgumentException::class.java) { ChunkInfo(row.id, 5L * 1024 * 1024, row.sha256) }

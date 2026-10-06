@@ -16,6 +16,7 @@ class OpUpdateActivity : AppCompatActivity() {
     private lateinit var history: TextView
     private lateinit var queue: Button
     private lateinit var cancel: Button
+    private lateinit var rollback: Button
     private val busy = AtomicBoolean(false)
     private val handler = Handler(Looper.getMainLooper())
     private var visible = false
@@ -53,6 +54,9 @@ class OpUpdateActivity : AppCompatActivity() {
         text("자동 연결을 켜두면 폰 부팅 후 오파 연결·재연결 시 새 버전을 확인하고, 연결 중에는 15분 간격으로 확인합니다. 새 버전은 알림과 위젯에 표시하며, 같은 버전 알림은 한 번만 표시합니다. 자동 설치는 하지 않습니다.", 14f)
         queue = button("업데이트 예약 · P 정차 후 적용") { command("queue") }
         cancel = button("업데이트 예약 취소") { command("cancel") }
+        rollback = button("이전 설치본으로 되돌리기") { command("rollback") }
+        rollback.isEnabled = false
+        text("앱으로 설치한 직전 오파 수정본을 백업으로 복원합니다. 복원할 버전이 확인될 때만 버튼이 켜집니다. P 정차·제어 해제 후 재부팅해 적용하며, 주행 기록과 차량 설정은 보존합니다.", 14f)
         queue.isEnabled = false; cancel.isEnabled = false
         text("운행 중에는 예약만 합니다. P 정차·속도 0·오파 제어 해제가 유지되면 검증과 백업 후 재부팅합니다. 설치 파일은 재부팅 시 적용됩니다. 차량 상태가 바뀌면 다시 대기합니다.")
         text("업데이트 이력", 19f)
@@ -79,6 +83,10 @@ class OpUpdateActivity : AppCompatActivity() {
         queue.isEnabled = connected && !busy.get() && !active && remote != null &&
             remote.optInt("sequence", 0) > (current?.optInt("sequence", 0) ?: 0)
         cancel.isEnabled = connected && !busy.get() && state?.optBoolean("cancel_available", false) == true
+        val restore = state?.let { OpUpdatePolicy.rollback(it) }
+        rollback.isEnabled = connected && !busy.get() && restore != null
+        rollback.text = if (restore == null) "이전 설치본으로 되돌리기 · 백업 확인 대기"
+            else "이전 설치본으로 되돌리기\n${restore.optString("target_release_id")}"
         val rows = state?.optJSONArray("history")
         if (rows != null) history.text = (rows.length()-1 downTo 0).joinToString("\n\n") { i ->
             val row = rows.getJSONObject(i)
@@ -114,9 +122,9 @@ class OpUpdateActivity : AppCompatActivity() {
     }
     private fun command(action: String) {
         val ep = endpoint() ?: return
-        val selected = state?.optJSONObject("latest")
+        val selected = state?.optJSONObject(if (action == "rollback") "installed" else "latest")
         if (!busy.compareAndSet(false, true)) return
-        queue.isEnabled = false; cancel.isEnabled = false
+        queue.isEnabled = false; cancel.isEnabled = false; rollback.isEnabled = false
         Thread {
             var result: JSONObject? = null
             var error = "요청 응답을 받지 못했습니다. 상태를 확인합니다."

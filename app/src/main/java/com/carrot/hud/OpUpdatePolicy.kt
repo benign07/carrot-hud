@@ -20,6 +20,14 @@ class OpUpdateSchedule {
 
 object OpUpdatePolicy {
     val activePhases = setOf("waiting_parked", "downloading", "countdown", "armed", "applying", "verifying", "rolling_back")
+    fun rollback(state: JSONObject): JSONObject? {
+        if (!state.optBoolean("ok") || !state.optBoolean("configured") || state.optString("phase") in activePhases) return null
+        val installed = state.optJSONObject("installed") ?: return null
+        val target = state.optJSONObject("rollback") ?: return null
+        if (!target.optBoolean("available") || target.optString("installed_release_id") != installed.optString("release_id")) return null
+        if (!target.optString("target_release_id").matches(Regex("[a-z0-9][a-z0-9-]{0,63}"))) return null
+        return target
+    }
     fun available(state: JSONObject): JSONObject? {
         if (!state.optBoolean("ok") || !state.optBoolean("configured") || state.optString("phase") in activePhases) return null
         // Do not infer an installed version when the device has not reported one.

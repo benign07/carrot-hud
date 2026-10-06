@@ -54,12 +54,16 @@ object OpUpdateApi {
     }
     fun status(endpoint: OpEndpoint): JSONObject = request(endpoint, null)
     fun action(endpoint: OpEndpoint, action: String, latest: JSONObject? = null): JSONObject {
-        require(action in setOf("check", "queue", "cancel"))
+        require(action in setOf("check", "queue", "cancel", "rollback"))
         val body = JSONObject().put("action", action)
         if (action == "queue") {
             require(latest != null)
             body.put("release_id", latest.getString("release_id"))
                 .put("bundle_sha256", latest.getString("bundle_sha256"))
+        }
+        if (action == "rollback") {
+            require(latest != null)
+            body.put("release_id", latest.getString("release_id"))
         }
         // No automatic POST retry: a lost response is resolved by a status GET.
         return request(endpoint, body)

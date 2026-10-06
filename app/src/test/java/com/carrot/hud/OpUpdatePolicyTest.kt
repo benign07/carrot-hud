@@ -40,4 +40,18 @@ class OpUpdatePolicyTest {
         s.success(120_000, false) // Active installs defer GitHub checks without losing the pending check.
         assertTrue(s.checkDue(180_000))
     }
+    @Test fun restoreRequiresActualDeviceBackupAndMatchingInstalledIdentity() {
+        val s = state().apply {
+            getJSONObject("installed").put("release_id", "current-1")
+            put("rollback", JSONObject().put("available", true).put("installed_release_id", "current-1")
+                .put("target_release_id", "previous-1"))
+        }
+        assertNotNull(OpUpdatePolicy.rollback(s))
+        for (phase in OpUpdatePolicy.activePhases) assertNull(OpUpdatePolicy.rollback(JSONObject(s.toString()).put("phase", phase)))
+        assertNull(OpUpdatePolicy.rollback(JSONObject(s.toString()).put("configured", false)))
+        assertNull(OpUpdatePolicy.rollback(JSONObject(s.toString()).apply { remove("rollback") }))
+        assertNull(OpUpdatePolicy.rollback(JSONObject(s.toString()).apply { getJSONObject("rollback").put("available", false) }))
+        assertNull(OpUpdatePolicy.rollback(JSONObject(s.toString()).apply { getJSONObject("rollback").put("installed_release_id", "changed-2") }))
+        assertNull(OpUpdatePolicy.rollback(JSONObject(s.toString()).apply { getJSONObject("rollback").put("target_release_id", "../invalid") }))
+    }
 }

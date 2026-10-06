@@ -58,7 +58,8 @@ def validate_chunk(path):
                 raise ValueError('Invalid record')
             if first and (row.get('kind') != 'header' or row.get('schema') != 1):
                 raise ValueError('Unsupported record schema')
-            if row.get('kind') not in ('header', 'sample', 'can_sample', 'event'):
+            if row.get('kind') not in ('header', 'sample', 'can_sample', 'event',
+                                      'panda_snapshot', 'button_trace_can'):
                 raise ValueError('Unsupported record type')
             first = False
     if first:

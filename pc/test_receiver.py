@@ -77,6 +77,22 @@ class ReceiverTests(unittest.IsolatedAsyncioTestCase):
         saved = json.loads((self.root / (self.ident + '.manifest.json')).read_text())
         self.assertEqual(saved['reason'], 'power_loss_recovered')
 
+    async def test_panda_and_button_trace_archive_and_duplicate(self):
+        data = gzip.compress(b'{"kind":"header","schema":1}\n'
+                             b'{"kind":"panda_snapshot","mono_ns":100,"states":[{"controls_allowed":false}]}\n'
+                             b'{"kind":"button_trace_can","mono_ns":110,"trace_id":"test","direction":"rx","bus":0,"address":267,"data":"0000"}\n')
+        response = await self.put(data=data, headers=self.headers(data))
+        self.assertEqual(response.status, 201)
+        self.assertEqual((self.root / (self.ident + '.jsonl.gz')).read_bytes(), data)
+        self.assertEqual((await response.json())['sha256'], hashlib.sha256(data).hexdigest())
+        self.assertEqual((await self.put(data=data, headers=self.headers(data))).status, 200)
+        self.assertEqual(len(list(self.root.glob('*.jsonl.gz'))), 1)
+
+    async def test_unknown_record_type_still_rejected(self):
+        data = gzip.compress(b'{"kind":"header","schema":1}\n{"kind":"unknown_future_record"}\n')
+        self.assertEqual((await self.put(data=data, headers=self.headers(data))).status, 400)
+        self.assertFalse(list(self.root.iterdir()))
+
     async def test_quota_preserves_existing_data(self):
         self.config['quota_bytes'] = 1
         self.assertEqual((await self.put()).status, 507)

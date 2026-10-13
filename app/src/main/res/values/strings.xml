@@ -16,6 +16,11 @@
     <string name="w_set">설정</string>
     <string name="w_mode_title">운전모드</string>
     <string name="w_mode_tap">탭하면 변경</string>
+    <string name="w_mode_eco_description">가속 상한 90%\n시간거리 ×0.9 · 설정 범위 적용\n접근·감속은 공통 설정</string>
+    <string name="w_mode_safe_description">가속 상한 80% · 1·2단계 반응 완만\n시간거리 ×0.8 · 설정 범위 적용\n접근·감속은 공통 설정</string>
+    <string name="w_mode_normal_description">가속 상한 100% · 기준 반응\n시간거리 ×1.0\n접근·감속은 공통 설정</string>
+    <string name="w_mode_high_description">가속 상한 120% · 시간거리 ×1.0\n신호등 자동정지 OFF\n접근·감속은 공통 설정</string>
+    <string name="w_mode_unknown_description">오파 연결 후 모드 설명 표시</string>
 
     <!-- hud screen bottom bar -->
     <string name="btn_overlay">오버레이</string>

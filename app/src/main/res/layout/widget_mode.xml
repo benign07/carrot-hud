@@ -23,8 +23,19 @@
         android:layout_marginTop="2dp"
         android:text="--"
         android:textColor="#FFFFFF"
-        android:textSize="24sp"
+        android:textSize="22sp"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/modeDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:gravity="center"
+        android:text="@string/w_mode_unknown_description"
+        android:maxLines="4"
+        android:textColor="#DCE6E1"
+        android:textSize="10sp" />
 
     <TextView
         android:id="@+id/modeHint"
@@ -32,7 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:text="탭하여 운행모드 변경"
-        android:maxLines="3"
+        android:maxLines="2"
         android:textColor="#66FFFFFF"
         android:textSize="10sp" />
     <TextView
@@ -49,7 +60,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:maxLines="4"
+        android:maxLines="2"
         android:ellipsize="end"
         android:text="자동 기록·PC 전송 상태 대기"
         android:textColor="#9EDDC6"

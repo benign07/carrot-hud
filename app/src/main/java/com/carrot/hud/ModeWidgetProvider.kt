@@ -38,14 +38,22 @@ class ModeWidgetProvider : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.modeRoot, PendingIntent.getBroadcast(context, 0,
             Intent(context, ModeWidgetProvider::class.java).setAction(ACTION_CYCLE),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
-        val (text, color) = modeTextColor(state.effective ?: state.saved ?: 0)
+        val mode = state.effective ?: state.saved ?: 0
+        val (text, color) = modeTextColor(mode)
         views.setTextViewText(R.id.modeText, text)
         views.setTextColor(R.id.modeText, color)
+        views.setTextViewText(R.id.modeDescription, context.getString(when (mode) {
+            1 -> R.string.w_mode_eco_description
+            2 -> R.string.w_mode_safe_description
+            3 -> R.string.w_mode_normal_description
+            4 -> R.string.w_mode_high_description
+            else -> R.string.w_mode_unknown_description
+        }))
         val time = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date())
         views.setTextViewText(R.id.modeTitle, if (state.effective != null) "확인한 실제 모드 · $time" else "저장 모드 · 실제 확인 대기")
         val saved = if (state.saved != null && state.effective != null && state.saved != state.effective)
             "저장: ${modeTextColor(state.saved).first} · " else ""
-        views.setTextViewText(R.id.modeHint, saved + state.message + if (state.effective == 4) " · 신호 정지 OFF" else "")
+        views.setTextViewText(R.id.modeHint, saved + state.message)
         ArchiveWidgetStatus.fill(context, views, R.id.modeTransfer)
         mgr.updateAppWidget(id, views)
     }

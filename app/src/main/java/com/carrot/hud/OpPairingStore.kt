@@ -10,11 +10,11 @@ import java.security.MessageDigest
 object OpPairingBinding {
     fun known(value: String) = value.isNotBlank() && value != "UnregisteredDevice"
     fun allows(device: Device, boundId: String, dongle: String, endpoint: OpEndpoint): Boolean =
-        device.id == boundId && (if (known(dongle)) dongle == device.dongle
+        !device.identityNeedsCheck && device.id == boundId && (if (known(dongle)) dongle == device.dongle
             else endpoint.url == "http://${device.ip}:${device.port}")
     fun canBind(device: Device, endpoint: OpEndpoint, remoteDongle: String?): Boolean =
-        if (known(device.dongle)) remoteDongle == device.dongle
-        else endpoint.url == "http://${device.ip}:${device.port}" && known(remoteDongle ?: "")
+        !device.identityNeedsCheck && (if (known(device.dongle)) remoteDongle == device.dongle
+        else endpoint.url == "http://${device.ip}:${device.port}" && known(remoteDongle ?: ""))
 }
 
 object OpPairingStore {
@@ -30,6 +30,7 @@ object OpPairingStore {
     }
     fun endpoint(context: Context): OpEndpoint? = try {
         val device = DeviceStore.getActive(context) ?: error("No active device")
+        require(!device.identityNeedsCheck)
         val saved = file(context, device.id)
         if (saved.isFile) {
             val row = JSONObject(saved.readText())
@@ -46,8 +47,21 @@ object OpPairingStore {
     /** Read-only identity lookup on the fixed endpoint, before sending any token. */
     @Synchronized fun resolve(context: Context): OpEndpoint? {
         endpoint(context)?.let { return it }
-        val device = DeviceStore.getActive(context) ?: return null
-        var key = device.id
+        var device = DeviceStore.getActive(context) ?: return null
+        if (device.identityNeedsCheck) {
+            // Never send the update token to a manually edited HUD address.
+            // A fresh, token-free identity read must qualify it first.
+            val observed = Net.fetchDongle(device.ip, device.port, 2500)
+            val verified = DeviceStore.confirmIdentity(context, device, observed)
+            if (verified == null) {
+                failureDevice = device.id
+                failureMessage = "새 주소의 기기 식별자 확인 대기 · HUD 연결을 확인하세요."
+                return null
+            }
+            device = verified
+            endpoint(context)?.let { failureMessage = ""; return it }
+        }
+        var key = device.id + "|" + device.dongle + "|" + device.label()
         return try {
             val raw = File(context.noBackupFilesDir, "op-update-pairing.json").readText()
             key += MessageDigest.getInstance("SHA-256").digest(raw.toByteArray()).contentHashCode().toString()
@@ -63,6 +77,7 @@ object OpPairingStore {
         }
     }
     @Synchronized fun bind(context: Context, device: Device, raw: String): OpEndpoint {
+        require(!device.identityNeedsCheck) { "새 주소의 기기 식별자 확인 대기 · HUD 연결 후 다시 확인하세요." }
         val ep = OpEndpoint.parse(raw)
         val uri = URI(ep.url)
         val remote = Net.fetchDongle(uri.host, uri.port, 2500)

@@ -166,6 +166,8 @@ class Receiver:
                 try:
                     command = [sys.executable, '-X', 'utf8', script, '--out', str(self.root), '--analyze-only']
                     if self.config.get('quality_report', False): command.append('--quality')
+                    if self.config.get('quality_media_url'):
+                        command += ['--media-url', self.config['quality_media_url'], '--video']
                     result = subprocess.run(command, capture_output=True, timeout=300)
                     return {'ok': result.returncode == 0, 'checked_at': time.time()}
                 except (OSError, subprocess.TimeoutExpired):

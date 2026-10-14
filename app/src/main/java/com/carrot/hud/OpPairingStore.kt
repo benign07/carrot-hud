@@ -18,6 +18,12 @@ object OpPairingBinding {
 }
 
 object OpPairingStore {
+    private val failures = mutableMapOf<String, Pair<Long, String>>()
+    @Volatile private var failureDevice = ""
+    @Volatile private var failureMessage = ""
+    fun reason(context: Context): String? = failureMessage.takeIf {
+        it.isNotBlank() && failureDevice == DeviceStore.getActiveId(context)
+    }
     private fun file(context: Context, id: String): File {
         val key = MessageDigest.getInstance("SHA-256").digest(id.toByteArray()).joinToString("") { "%02x".format(it.toInt() and 255) }
         return File(context.noBackupFilesDir, "op-update-$key.json")
@@ -38,15 +44,25 @@ object OpPairingStore {
     } catch (_: Exception) { null }
 
     /** Read-only identity lookup on the fixed endpoint, before sending any token. */
-    fun resolve(context: Context): OpEndpoint? {
+    @Synchronized fun resolve(context: Context): OpEndpoint? {
         endpoint(context)?.let { return it }
         val device = DeviceStore.getActive(context) ?: return null
+        var key = device.id
         return try {
             val raw = File(context.noBackupFilesDir, "op-update-pairing.json").readText()
-            bind(context, device, raw)
-        } catch (_: Exception) { null }
+            key += MessageDigest.getInstance("SHA-256").digest(raw.toByteArray()).contentHashCode().toString()
+            val previous = failures[key]
+            if (previous != null && System.nanoTime() < previous.first) return null
+            bind(context, device, raw).also { failures.remove(key); failureMessage = "" }
+        } catch (e: Exception) {
+            failureDevice = device.id
+            failureMessage = if (e is java.io.FileNotFoundException) "이 기기의 최초 업데이트 연결 파일을 등록하세요."
+                else e.message ?: "등록 기기와 Tailscale 연결을 확인하세요."
+            failures[key] = Pair(System.nanoTime() + 60_000_000_000L, failureMessage)
+            null
+        }
     }
-    fun bind(context: Context, device: Device, raw: String): OpEndpoint {
+    @Synchronized fun bind(context: Context, device: Device, raw: String): OpEndpoint {
         val ep = OpEndpoint.parse(raw)
         val uri = URI(ep.url)
         val remote = Net.fetchDongle(uri.host, uri.port, 2500)

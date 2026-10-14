@@ -105,7 +105,7 @@ class OpUpdateActivity : AppCompatActivity() {
             val ep = OpPairingStore.resolve(applicationContext)
             var result: JSONObject? = null
             var latest: JSONObject? = null
-            var message = "등록 기기의 Tailscale 연결 또는 최초 연결 파일을 확인하세요."
+            var message = OpPairingStore.reason(applicationContext) ?: "등록 기기의 Tailscale 연결 또는 최초 연결 파일을 확인하세요."
             try {
                 if (ep != null) result = if (check) OpUpdateApi.action(ep, "check") else OpUpdateApi.status(ep)
                 if (ep != null && result != null) OpUpdateMonitor.observe(applicationContext, ep, result!!)

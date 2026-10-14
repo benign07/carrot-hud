@@ -23,12 +23,14 @@ object OpUpdateMonitor {
     private fun prefs(context: Context) = context.getSharedPreferences("op_update_monitor", Context.MODE_PRIVATE)
     fun endpoint(context: Context): OpEndpoint? = OpPairingStore.endpoint(context)
 
-    @Synchronized fun connected(context: Context) {
+    fun connected(context: Context) {
         val app = context.applicationContext
         val ep = OpPairingStore.resolve(app) ?: return // existing archival worker, never the UI thread
-        if (target != ep.url) { target = ep.url; schedule = OpUpdateSchedule() }
-        val current = schedule
-        if (!current.due(SystemClock.elapsedRealtime()) || !busy.compareAndSet(false, true)) return
+        val current = synchronized(this) {
+            if (target != ep.url) { target = ep.url; schedule = OpUpdateSchedule() }
+            if (!schedule.due(SystemClock.elapsedRealtime()) || !busy.compareAndSet(false, true)) return
+            schedule
+        }
         executor.execute {
             try {
                 var state = OpUpdateApi.status(ep)

@@ -127,7 +127,6 @@ object DriveArchive {
               } catch (error: Exception) {
                 if (error is ChunkConnectionException) {
                     deviceResponded = false
-                    OpUpdateMonitor.disconnected()
                     throw error // Stop the pass when no HTTP response was received.
                 }
                 // Keep local storage failures fatal; preserve old files and pause.
@@ -146,7 +145,6 @@ object DriveArchive {
             status = "휴대폰 보관 $count 개 · ${bytesUsed / 1048576} MB · 기기 연결됨"
             lastChunkError?.let { status = ArchiveFailure.message(it, ArchiveStage.DOWNLOAD, true, count) + " · 실패 $chunkFailures 개, 다음 기록 계속 보관" }
         } catch (error: Exception) {
-            if (!deviceResponded && stage == ArchiveStage.INDEX) OpUpdateMonitor.disconnected()
             val count = root(context).listFiles()?.count { it.name.endsWith(".manifest.json") } ?: 0
             status = ArchiveFailure.message(error, stage, deviceResponded, count)
         } finally { syncLock.unlock(); ArchiveWidgetStatus.publish(context) }

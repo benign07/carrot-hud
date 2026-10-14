@@ -56,6 +56,14 @@
         android:textSize="11sp"
         android:visibility="gone" />
     <TextView
+        android:id="@+id/modeDiagnostic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:text="진단 연결 대기"
+        android:textColor="#9EDDC6"
+        android:textSize="9sp" />
+    <TextView
         android:id="@+id/modeTransfer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

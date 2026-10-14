@@ -21,16 +21,11 @@ object OpUpdateMonitor {
     private const val CHANNEL = "op_update_available"
     private const val NOTIFICATION = 1013
     private fun prefs(context: Context) = context.getSharedPreferences("op_update_monitor", Context.MODE_PRIVATE)
-    fun endpoint(context: Context): OpEndpoint? = try {
-        val ep = OpEndpoint.parse(File(context.noBackupFilesDir, "op-update-pairing.json").readText())
-        val device = DeviceStore.getActive(context) ?: error("No active device")
-        require(ep.url == "http://${device.ip}:${device.port}")
-        ep
-    } catch (_: Exception) { null }
+    fun endpoint(context: Context): OpEndpoint? = OpPairingStore.endpoint(context)
 
     @Synchronized fun connected(context: Context) {
         val app = context.applicationContext
-        val ep = endpoint(app) ?: return
+        val ep = OpPairingStore.resolve(app) ?: return // existing archival worker, never the UI thread
         if (target != ep.url) { target = ep.url; schedule = OpUpdateSchedule() }
         val current = schedule
         if (!current.due(SystemClock.elapsedRealtime()) || !busy.compareAndSet(false, true)) return
@@ -78,9 +73,9 @@ object OpUpdateMonitor {
         ArchiveWidgetStatus.publish(context)
     }
     fun badge(context: Context): String {
-        val device = DeviceStore.getActive(context) ?: return ""
+        val ep = endpoint(context) ?: return ""
         val p = prefs(context)
-        if (p.getString("url", "") != "http://${device.ip}:${device.port}") return ""
+        if (p.getString("url", "") != ep.url) return ""
         val release = p.getString("release", "") ?: ""
         return if (release.isBlank()) "" else "오파 새 업데이트 · 눌러서 확인"
     }

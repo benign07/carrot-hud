@@ -59,7 +59,8 @@ def validate_chunk(path):
             if first and (row.get('kind') != 'header' or row.get('schema') != 1):
                 raise ValueError('Unsupported record schema')
             if row.get('kind') not in ('header', 'sample', 'can_sample', 'event',
-                                      'panda_snapshot', 'button_trace_can'):
+                                      'panda_snapshot', 'button_trace_can',
+                                      'longitudinal_evidence', 'video_index'):
                 raise ValueError('Unsupported record type')
             first = False
     if first:
@@ -163,8 +164,9 @@ class Receiver:
             def run():
                 import sys
                 try:
-                    result = subprocess.run([sys.executable, '-X', 'utf8', script, '--out', str(self.root), '--analyze-only'],
-                                            capture_output=True, timeout=120)
+                    command = [sys.executable, '-X', 'utf8', script, '--out', str(self.root), '--analyze-only']
+                    if self.config.get('quality_report', False): command.append('--quality')
+                    result = subprocess.run(command, capture_output=True, timeout=300)
                     return {'ok': result.returncode == 0, 'checked_at': time.time()}
                 except (OSError, subprocess.TimeoutExpired):
                     return {'ok': False, 'checked_at': time.time()}

@@ -16,9 +16,10 @@ object ArchiveWidgetStatus {
         try {
         val text = "${DriveArchive.status}\n${PcArchive.status}"
         val badge = OpUpdateMonitor.badge(context)
+        val diagnostic = DiagnosticWidgetStatus.text(context)
         val prefs = context.getSharedPreferences("archive_widget", Context.MODE_PRIVATE)
-        if (prefs.getString("text", "") == text && prefs.getString("badge", "") == badge) return
-        prefs.edit().putString("text", text).putString("badge", badge).putLong("at", System.currentTimeMillis()).apply()
+        if (prefs.getString("text", "") == text && prefs.getString("badge", "") == badge && prefs.getString("diagnostic", "") == diagnostic) return
+        prefs.edit().putString("text", text).putString("badge", badge).putString("diagnostic", diagnostic).putLong("at", System.currentTimeMillis()).apply()
         val mgr = AppWidgetManager.getInstance(context)
         for ((provider, layout, field) in listOf(
             Triple(HudWidgetProvider::class.java, R.layout.widget_hud, R.id.wTransfer),
@@ -38,6 +39,8 @@ object ArchiveWidgetStatus {
         val at = prefs.getLong("at", 0)
         val checked = if (at == 0L) "" else "\n상태 갱신 ${DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(at))}"
         views.setTextViewText(field, text + checked)
+        views.setTextViewText(if (field == R.id.wTransfer) R.id.wDiagnostic else R.id.modeDiagnostic,
+            DiagnosticWidgetStatus.text(context))
         val updateField = if (field == R.id.wTransfer) R.id.wUpdate else R.id.modeUpdate
         val badge = OpUpdateMonitor.badge(context)
         views.setTextViewText(updateField, badge)

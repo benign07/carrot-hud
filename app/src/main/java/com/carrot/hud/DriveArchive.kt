@@ -54,6 +54,8 @@ object DriveArchive {
         var stage = ArchiveStage.STORAGE
         try {
             val device = DeviceStore.getActive(context) ?: run { status = "오파 기기 등록 필요"; return }
+            DiagnosticWidgetStatus.refresh(context, device)
+            OpUpdateMonitor.connected(context)
             val folder = root(context)
             if (!folder.isDirectory && !folder.mkdirs()) throw java.io.IOException("record directory unavailable")
             stage = ArchiveStage.INDEX
@@ -84,7 +86,6 @@ object DriveArchive {
                 }
             } finally { connection.disconnect() }
             val rows = JSONObject(raw).getJSONArray("chunks")
-            OpUpdateMonitor.connected(context)
             var bytesUsed = folder.listFiles()?.sumOf { it.length() } ?: 0L
             var downloaded = 0
             var chunkFailures = 0

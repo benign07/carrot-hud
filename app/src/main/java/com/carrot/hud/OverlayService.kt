@@ -78,6 +78,7 @@ class OverlayService : Service() {
         val web = v.findViewById<WebView>(R.id.overlayWeb)
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
+        web.webViewClient = HudWebViewClient()
         web.loadDataWithBaseURL(null, "<html><body style='margin:0;background:#0a0e12'></body></html>", "text/html", "utf-8", null)
         // resolve the device IP (may scan the LAN if the hotspot changed it), then load
         Thread {

@@ -51,6 +51,12 @@ class ReceiverTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.put(headers=headers)).status, 403)
         self.assertFalse(list(self.root.iterdir()))
 
+    async def test_detailed_evidence_and_video_index_preserve_transfer_contract(self):
+        data = gzip.compress(b'{"kind":"header","schema":1}\n{"kind":"longitudinal_evidence","producer":"test","sequence":1}\n{"kind":"video_index","index":{"frameId":3}}\n')
+        response = await self.put(data=data, headers=self.headers(data))
+        self.assertEqual(response.status, 201)
+        self.assertEqual((self.root / (self.ident + '.jsonl.gz')).read_bytes(), data)
+
     async def test_corruption_and_invalid_schema_not_published(self):
         self.assertEqual((await self.put(data=b'x' * len(self.payload))).status, 400)
         data = gzip.compress(b'{"kind":"header","schema":9}\n')

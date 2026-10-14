@@ -35,12 +35,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private val archiveHandler = Handler(Looper.getMainLooper())
-    private val archiveStatus = object : Runnable {
-        override fun run() {
-            findViewById<TextView>(R.id.archiveStatus)?.text = "${DriveArchive.status}\n${PcArchive.status}"
-            archiveHandler.postDelayed(this, 2000)
-        }
-    }
     private val exportRecords = registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
         if (uri != null) Thread {
             val text = try {
@@ -79,7 +73,8 @@ class MainActivity : AppCompatActivity() {
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
         web.settings.mediaPlaybackRequiresUserGesture = false
-        web.webViewClient = WebViewClient()
+        web.webViewClient = HudWebViewClient()
+        findViewById<View>(R.id.archiveStatus).visibility = View.GONE
 
         findViewById<View>(R.id.btnOverlay).setOnClickListener { startOverlay() }
         findViewById<View>(R.id.btnSettings).setOnClickListener {
@@ -105,13 +100,11 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         if (device != null) {
             DriveArchive.attach(this, this)
-            archiveHandler.post(archiveStatus)
             archiveHandler.postDelayed(reconnect, 20_000)
         }
     }
 
     override fun onStop() {
-        archiveHandler.removeCallbacks(archiveStatus)
         archiveHandler.removeCallbacks(reconnect)
         DriveArchive.detach(this)
         super.onStop()

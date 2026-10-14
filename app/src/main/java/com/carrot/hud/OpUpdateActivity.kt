@@ -22,14 +22,19 @@ class OpUpdateActivity : AppCompatActivity() {
     private var visible = false
     private var state: JSONObject? = null
     private var preview: JSONObject? = null
+    private var stateTarget: String? = null
+    private var stateDeviceId: String? = null
     private fun pairing() = File(noBackupFilesDir, "op-update-pairing.json")
     private fun endpoint(): OpEndpoint? = OpUpdateMonitor.endpoint(this)
     private val importPairing = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) try {
             val raw = contentResolver.openInputStream(uri)!!.use { it.readBytesLimited(4096) }.toString(Charsets.UTF_8)
-            OpEndpoint.parse(raw)
-            ArchiveConfig.writeAtomic(pairing(), raw)
-            refresh(true)
+            val device = DeviceStore.getActive(this) ?: error("기기 등록 필요")
+            Thread {
+                val error = try { OpPairingStore.bind(applicationContext, device, raw); null }
+                    catch (e: Exception) { e.message ?: "연결 파일 확인 실패" }
+                runOnUiThread { if (error == null) refresh(true) else status.text = error }
+            }.start()
         } catch (_: Exception) { status.text = "오파용 연결 파일을 확인하세요. 기존 설정은 보존됩니다." }
     }
     private val poll = object : Runnable {
@@ -52,7 +57,7 @@ class OpUpdateActivity : AppCompatActivity() {
         notes = text("새 버전과 변경점을 확인합니다.")
         button("새 버전·상태 확인") { refresh(true) }
         text("자동 연결을 켜두면 폰 부팅 후 오파 연결·재연결 시 새 버전을 확인하고, 연결 중에는 15분 간격으로 확인합니다. 새 버전은 알림과 위젯에 표시하며, 같은 버전 알림은 한 번만 표시합니다. 자동 설치는 하지 않습니다.", 14f)
-        queue = button("업데이트 예약 · P 정차 후 적용") { command("queue") }
+        queue = button("오파에 설치·재부팅 · 주행 중이면 정차 후 적용") { command("queue") }
         cancel = button("업데이트 예약 취소") { command("cancel") }
         rollback = button("이전 설치본으로 되돌리기") { command("rollback") }
         rollback.isEnabled = false
@@ -62,7 +67,7 @@ class OpUpdateActivity : AppCompatActivity() {
         text("업데이트 이력", 19f)
         history = text("이력 확인 대기", 14f)
         button("오파 업데이트 연결 파일 등록") { importPairing.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }
-        text("처음 한 번 오파에 업데이트 기능을 설치해야 합니다. 앱 업데이트와 오파 업데이트는 서로 별개입니다. PC에서 게시하고 서명한 소스 업데이트만 받으며, 펌웨어·모델·네이티브 빌드는 별도 설치가 필요합니다.", 14f)
+        text("등록된 기기는 Tailscale 주소로 직접 업데이트합니다. GitHub에 검증·서명된 새 버전이 있으면 위 설치 버튼만 누르세요. Wi-Fi 주소가 바뀌어도 같은 기기인지 식별자로 확인합니다. 최초 연결 파일 등록은 한 번 필요하며, 펌웨어·모델·네이티브 빌드는 별도 설치 대상입니다.", 14f)
         setContentView(ScrollView(this).apply { addView(box) })
         val cached = getSharedPreferences("op_update", MODE_PRIVATE).getString("preview", null)
         preview = try { cached?.let { JSONObject(it) } } catch (_: Exception) { null }
@@ -70,6 +75,7 @@ class OpUpdateActivity : AppCompatActivity() {
         refresh(true)
     }
     private fun render(connected: Boolean) {
+        val matched = connected && stateTarget == endpoint()?.url && stateDeviceId == DeviceStore.getActiveId(this)
         val remote = state?.optJSONObject("latest")
         val current = state?.optJSONObject("installed")
         val latest = remote ?: preview
@@ -80,11 +86,10 @@ class OpUpdateActivity : AppCompatActivity() {
             (if (list == null) "" else (0 until list.length()).joinToString("\n") { "• ${list.optString(it)}" })
         val phase = state?.optString("phase", "idle") ?: "idle"
         val active = phase in setOf("waiting_parked", "downloading", "countdown", "armed", "applying", "verifying", "rolling_back")
-        queue.isEnabled = connected && !busy.get() && !active && remote != null &&
-            remote.optInt("sequence", 0) > (current?.optInt("sequence", 0) ?: 0)
-        cancel.isEnabled = connected && !busy.get() && state?.optBoolean("cancel_available", false) == true
+        queue.isEnabled = matched && !busy.get() && !active && state?.let { OpUpdatePolicy.available(it) } != null
+        cancel.isEnabled = matched && !busy.get() && state?.optBoolean("cancel_available", false) == true
         val restore = state?.let { OpUpdatePolicy.rollback(it) }
-        rollback.isEnabled = connected && !busy.get() && restore != null
+        rollback.isEnabled = matched && !busy.get() && restore != null
         rollback.text = if (restore == null) "이전 설치본으로 되돌리기 · 백업 확인 대기"
             else "이전 설치본으로 되돌리기\n${restore.optString("target_release_id")}"
         val rows = state?.optJSONArray("history")
@@ -95,11 +100,12 @@ class OpUpdateActivity : AppCompatActivity() {
     }
     private fun refresh(check: Boolean) {
         if (!busy.compareAndSet(false, true)) return
-        val ep = endpoint()
+        val requestedId = DeviceStore.getActiveId(this)
         Thread {
+            val ep = OpPairingStore.resolve(applicationContext)
             var result: JSONObject? = null
             var latest: JSONObject? = null
-            var message = "오파 업데이트 기능 최초 설치·연결 등록이 필요합니다."
+            var message = "등록 기기의 Tailscale 연결 또는 최초 연결 파일을 확인하세요."
             try {
                 if (ep != null) result = if (check) OpUpdateApi.action(ep, "check") else OpUpdateApi.status(ep)
                 if (ep != null && result != null) OpUpdateMonitor.observe(applicationContext, ep, result!!)
@@ -108,31 +114,43 @@ class OpUpdateActivity : AppCompatActivity() {
             runOnUiThread {
                 busy.set(false)
                 if (isFinishing || isDestroyed) return@runOnUiThread
+                if (DeviceStore.getActiveId(this) != requestedId || (ep != null && endpoint()?.url != ep.url)) {
+                    state = null; stateTarget = null; stateDeviceId = null; render(false); return@runOnUiThread
+                }
                 if (latest != null) {
                     preview = latest
                     getSharedPreferences("op_update", MODE_PRIVATE).edit().putString("preview", latest.toString()).apply()
                 }
                 if (result != null) {
                     state = result
+                    stateTarget = ep?.url; stateDeviceId = requestedId
                     status.text = OpUpdateApi.label(result!!.optString("phase")) + "\n" + result!!.optString("message")
-                } else { state = null; status.text = message }
+                } else { state = null; stateTarget = null; stateDeviceId = null; status.text = message }
                 render(result != null)
             }
         }.start()
     }
     private fun command(action: String) {
         val ep = endpoint() ?: return
+        val requestedId = DeviceStore.getActiveId(this)
+        if (stateTarget != ep.url || stateDeviceId != requestedId) { state = null; refresh(true); return }
         val selected = state?.optJSONObject(if (action == "rollback") "installed" else "latest")
         if (!busy.compareAndSet(false, true)) return
         queue.isEnabled = false; cancel.isEnabled = false; rollback.isEnabled = false
         Thread {
             var result: JSONObject? = null
             var error = "요청 응답을 받지 못했습니다. 상태를 확인합니다."
-            try { result = OpUpdateApi.action(ep, action, selected); OpUpdateMonitor.observe(applicationContext, ep, result!!) }
+            try {
+                require(endpoint()?.url == ep.url && DeviceStore.getActiveId(this) == requestedId)
+                result = OpUpdateApi.action(ep, action, selected); OpUpdateMonitor.observe(applicationContext, ep, result!!)
+            }
             catch (e: Exception) { if (e is OpUpdateException) error = e.message ?: error }
             runOnUiThread {
                 busy.set(false)
                 if (isFinishing || isDestroyed) return@runOnUiThread
+                if (endpoint()?.url != ep.url || DeviceStore.getActiveId(this) != requestedId) {
+                    state = null; stateTarget = null; stateDeviceId = null; render(false); return@runOnUiThread
+                }
                 if (result != null) { state = result; status.text = result!!.optString("message"); render(true) }
                 else { status.text = error; state = null; render(false) }
             }

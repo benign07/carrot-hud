@@ -7,6 +7,11 @@ import java.net.URL
 
 /** Idempotent upload: a durable, hash-verified PC receipt is required for success. */
 object PcTransfer {
+    /** Only a proven empty, valid gzip is permanently unusable here. IO or
+     * format errors propagate for retry; unknown schemas are left to the PC.
+     * The caller verifies the immutable hash before calling this function. */
+    fun emptyRecord(file: File): Boolean = java.util.zip.GZIPInputStream(file.inputStream()).use { it.read() < 0 }
+
     private val timeouts = java.util.concurrent.Executors.newSingleThreadScheduledExecutor { task ->
         Thread(task, "pc-upload-timeout").apply { isDaemon = true }
     }

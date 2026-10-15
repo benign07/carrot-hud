@@ -54,6 +54,17 @@ object PcArchive {
                     damaged++; skipped++
                     continue
                 }
+                val empty = try { PcTransfer.emptyRecord(file) }
+                    catch (_: Exception) {
+                        status = "휴대폰 기록 읽기 오류 · PC 전송 재시도 대기"
+                        return false
+                    }
+                if (empty) {
+                    // Preserve this source, count it as an error (never complete),
+                    // and allow later valid records to reach the PC.
+                    damaged++; skipped++
+                    continue
+                }
                 status = "PC 전송 중 · 완료 $completed / 대기 ${pending.size - sent - skipped}"
                 ArchiveWidgetStatus.publish(context)
                 try {

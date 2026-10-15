@@ -8,6 +8,29 @@ import java.net.*
 import java.nio.file.Files
 
 class PcTransferTest {
+    @Test fun emptyGzipIsNotAValidFollowingRecord() {
+        val root = Files.createTempDirectory("pc-empty-record").toFile()
+        try {
+            val empty = File(root, "empty.gz")
+            java.util.zip.GZIPOutputStream(empty.outputStream()).use { }
+            val good = File(root, "good.gz")
+            java.util.zip.GZIPOutputStream(good.outputStream()).use {
+                it.write("{\"kind\":\"header\",\"schema\":1}\n".toByteArray())
+            }
+            assertTrue(PcTransfer.emptyRecord(empty))
+            assertFalse(PcTransfer.emptyRecord(good))
+            assertTrue(empty.isFile && good.isFile)
+        } finally { root.deleteRecursively() }
+    }
+
+    @Test fun gzipOrStorageErrorsAreNotMisclassifiedAsEmpty() {
+        val root = Files.createTempDirectory("pc-bad-record").toFile()
+        try {
+            val bad = File(root, "bad.gz").apply { writeText("bad gzip") }
+            assertThrows(IOException::class.java) { PcTransfer.emptyRecord(bad) }
+            assertThrows(IOException::class.java) { PcTransfer.emptyRecord(File(root, "missing")) }
+        } finally { root.deleteRecursively() }
+    }
     private val endpoint = PcEndpoint("http://100.114.242.2:7041", "t".repeat(43), "b".repeat(32))
     private class Connection(val reply: String, val code: Int = 201) : HttpURLConnection(URL("http://127.0.0.1")) {
         val body = ByteArrayOutputStream()

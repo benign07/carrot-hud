@@ -168,11 +168,22 @@ class Receiver:
                     if self.config.get('quality_report', False): command.append('--quality')
                     if self.config.get('quality_media_url'):
                         command += ['--media-url', self.config['quality_media_url'], '--video']
-                    result = subprocess.run(command, capture_output=True, timeout=300)
-                    return {'ok': result.returncode == 0, 'checked_at': time.time()}
-                except (OSError, subprocess.TimeoutExpired):
-                    return {'ok': False, 'checked_at': time.time()}
-            atomic_json(self.root / 'receiver-analysis-status.json', await asyncio.to_thread(run))
+                    env = os.environ.copy()
+                    paths = self.config.get('analysis_python_paths', [])
+                    if paths: env['PYTHONPATH'] = os.pathsep.join(paths+[env.get('PYTHONPATH','')])
+                    result = subprocess.run(command, capture_output=True, timeout=300, env=env)
+                    pending=0
+                    if result.returncode==0:
+                        pending=int(json.loads((self.root/'analysis.json').read_text(encoding='utf-8')).get('analysis_pending_chunks',0))
+                    return {'ok': result.returncode == 0, 'checked_at': time.time(),
+                            'returncode':result.returncode,'analysis_pending_chunks':pending,
+                            'error':result.stderr.decode('utf-8',errors='replace')[-1200:] if result.returncode else None}
+                except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
+                    return {'ok': False, 'checked_at': time.time(),'error':type(exc).__name__}
+            status=await asyncio.to_thread(run)
+            atomic_json(self.root / 'receiver-analysis-status.json', status)
+            if status.get('ok') and status.get('analysis_pending_chunks'):
+                self.changed.set()  # Continue cache filling, without a new phone upload.
 
     async def startup(self, app):
         self.analysis_task = asyncio.create_task(self.analysis())

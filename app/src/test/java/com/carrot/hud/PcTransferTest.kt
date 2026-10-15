@@ -31,6 +31,14 @@ class PcTransferTest {
             assertThrows(IOException::class.java) { PcTransfer.emptyRecord(File(root, "missing")) }
         } finally { root.deleteRecursively() }
     }
+    @Test fun invalidGzipConstructorStillClosesOwnedSource() {
+        var closed = false
+        val stream = object : java.io.ByteArrayInputStream("bad gzip".toByteArray()) {
+            override fun close() { closed = true; super.close() }
+        }
+        assertThrows(IOException::class.java) { PcTransfer.emptyRecord(stream) }
+        assertTrue(closed)
+    }
     private val endpoint = PcEndpoint("http://100.114.242.2:7041", "t".repeat(43), "b".repeat(32))
     private class Connection(val reply: String, val code: Int = 201) : HttpURLConnection(URL("http://127.0.0.1")) {
         val body = ByteArrayOutputStream()

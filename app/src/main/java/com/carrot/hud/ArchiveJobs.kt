@@ -22,6 +22,12 @@ object ArchiveJobs {
         WorkManager.getInstance(context).cancelUniqueWork("carrot-archive-now")
         WorkManager.getInstance(context).cancelUniqueWork("carrot-archive-periodic")
     }
+    fun continueUpload(context: Context) {
+        if (!ArchiveConfig.enabled(context)) return
+        WorkManager.getInstance(context).enqueueUniqueWork("carrot-archive-now", ExistingWorkPolicy.APPEND_OR_REPLACE,
+            OneTimeWorkRequestBuilder<ArchiveWorker>().setConstraints(constraints())
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS).build())
+    }
 }
 
 class ArchiveWorker(context: Context, parameters: WorkerParameters) : Worker(context, parameters) {
@@ -32,6 +38,7 @@ class ArchiveWorker(context: Context, parameters: WorkerParameters) : Worker(con
         if (!isStopped && ArchiveConfig.enabled(applicationContext)) {
             DriveArchive.syncOnce(applicationContext) { isStopped || !ArchiveConfig.enabled(applicationContext) }
         }
-        return if (uploaded) Result.success() else Result.retry()
+        if (uploaded == PcArchive.Outcome.MORE_PENDING && !isStopped) ArchiveJobs.continueUpload(applicationContext)
+        return if (uploaded == PcArchive.Outcome.RETRY) Result.retry() else Result.success()
     }
 }

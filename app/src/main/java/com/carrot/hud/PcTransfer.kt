@@ -10,7 +10,10 @@ object PcTransfer {
     /** Only a proven empty, valid gzip is permanently unusable here. IO or
      * format errors propagate for retry; unknown schemas are left to the PC.
      * The caller verifies the immutable hash before calling this function. */
-    fun emptyRecord(file: File): Boolean = java.util.zip.GZIPInputStream(file.inputStream()).use { it.read() < 0 }
+    fun emptyRecord(file: File): Boolean = emptyRecord(file.inputStream())
+    internal fun emptyRecord(source: java.io.InputStream): Boolean = source.use {
+        java.util.zip.GZIPInputStream(source).use { it.read() < 0 }
+    }
 
     private val timeouts = java.util.concurrent.Executors.newSingleThreadScheduledExecutor { task ->
         Thread(task, "pc-upload-timeout").apply { isDaemon = true }

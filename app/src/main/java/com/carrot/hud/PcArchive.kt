@@ -8,16 +8,17 @@ import java.util.Date
 import java.util.concurrent.locks.ReentrantLock
 
 object PcArchive {
+    enum class Outcome { COMPLETE, MORE_PENDING, RETRY }
     private val lock = ReentrantLock()
     @Volatile var status = "PC 전송 대기"
         private set
 
     /** Source files stay on the phone. Stop at a bounded batch or first network error. */
-    fun sync(context: Context, cancelled: () -> Boolean = { false }): Boolean {
-        if (!lock.tryLock()) return true
+    fun sync(context: Context, cancelled: () -> Boolean = { false }): Outcome {
+        if (!lock.tryLock()) return Outcome.COMPLETE
         try {
             val endpoint = ArchiveConfig.endpoint(context)
-            if (endpoint == null) { status = "PC 연결 설정 필요"; return true }
+            if (endpoint == null) { status = "PC 연결 설정 필요"; return Outcome.COMPLETE }
             val folder = DriveArchive.root(context)
             val receipts = File(context.noBackupFilesDir, "pc_receipts/${endpoint.receiverId}").apply { mkdirs() }
             val manifests = folder.listFiles()?.filter { it.name.matches(Regex("[a-f0-9]{32}\\.manifest\\.json")) }?.sortedBy { it.name } ?: emptyList()
@@ -35,7 +36,7 @@ object PcArchive {
                     else pending.add(info to File(folder, "${info.id}.jsonl.gz"))
                 } catch (_: java.io.IOException) {
                     status = "휴대폰 기록 읽기 오류 · PC 전송 재시도 대기"
-                    return false
+                    return Outcome.RETRY
                 } catch (_: Exception) { damaged++ }
             }
             val prefs = context.getSharedPreferences("archive_status", Context.MODE_PRIVATE)
@@ -48,16 +49,18 @@ object PcArchive {
                 val verified = try { ChunkTransfer.verified(file, info) }
                     catch (_: ChunkStorageException) {
                         status = "휴대폰 기록 읽기 오류 · PC 전송 재시도 대기"
-                        return false
+                        return Outcome.RETRY
                     } catch (_: Exception) { false }
                 if (!verified) {
                     damaged++; skipped++
                     continue
                 }
                 val empty = try { PcTransfer.emptyRecord(file) }
+                    catch (_: java.util.zip.ZipException) { damaged++; skipped++; continue }
+                    catch (_: java.io.EOFException) { damaged++; skipped++; continue }
                     catch (_: Exception) {
                         status = "휴대폰 기록 읽기 오류 · PC 전송 재시도 대기"
-                        return false
+                        return Outcome.RETRY
                     }
                 if (empty) {
                     // Preserve this source, count it as an error (never complete),
@@ -76,11 +79,11 @@ object PcArchive {
                     completed++; sent++
                 } catch (_: Exception) {
                     status = "PC 연결/전송 대기 · 완료 $completed / 대기 ${pending.size - sent - skipped} · ${lastText(last)}" + if (damaged > 0) " · 기록 오류 $damaged" else ""
-                    return false
+                    return Outcome.RETRY
                 }
             }
             status = "PC 완료 $completed · 대기 ${pending.size - sent - skipped} · ${lastText(last)}" + if (damaged > 0) " · 기록 오류 $damaged" else ""
-            return pending.size == sent + skipped
+            return if (pending.size == sent + skipped) Outcome.COMPLETE else Outcome.MORE_PENDING
         } finally { lock.unlock(); ArchiveWidgetStatus.publish(context) }
     }
 

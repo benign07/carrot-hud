@@ -7,8 +7,8 @@ import java.net.URL
 
 /** Idempotent upload: a durable, hash-verified PC receipt is required for success. */
 object PcTransfer {
-    /** Only a proven empty, valid gzip is permanently unusable here. IO or
-     * format errors propagate for retry; unknown schemas are left to the PC.
+    /** Empty or gzip-format-invalid sources are retained and reported damaged
+     * by the caller. Storage errors retry; unknown schemas are left to the PC.
      * The caller verifies the immutable hash before calling this function. */
     fun emptyRecord(file: File): Boolean = emptyRecord(file.inputStream())
     internal fun emptyRecord(source: java.io.InputStream): Boolean = source.use {

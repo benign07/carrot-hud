@@ -21,6 +21,23 @@ import uuid
 
 from aiohttp import web
 
+
+def run_analysis(command, env, timeout=290):
+    """Own one analysis process tree; no timed-out decoder is left behind."""
+    process=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=env,
+                             start_new_session=os.name!='nt')
+    try:
+        stdout,stderr=process.communicate(timeout=timeout)
+        return subprocess.CompletedProcess(command,process.returncode,stdout,stderr)
+    except subprocess.TimeoutExpired:
+        if os.name=='nt':
+            subprocess.run(['taskkill','/PID',str(process.pid),'/T','/F'],capture_output=True,timeout=10)
+        else:
+            import signal
+            os.killpg(process.pid,signal.SIGKILL)
+        process.communicate()
+        raise
+
 MAX_CHUNK = 4 * 1024**2
 MAX_RAW = 16 * 1024**2
 ID = re.compile(r'^[a-f0-9]{32}$')
@@ -171,7 +188,8 @@ class Receiver:
                     env = os.environ.copy()
                     paths = self.config.get('analysis_python_paths', [])
                     if paths: env['PYTHONPATH'] = os.pathsep.join(paths+[env.get('PYTHONPATH','')])
-                    result = subprocess.run(command, capture_output=True, timeout=300, env=env)
+                    env['CARROT_ANALYSIS_SUPERVISED']='1'
+                    result = run_analysis(command, env)
                     pending=0
                     if result.returncode==0:
                         pending=int(json.loads((self.root/'analysis.json').read_text(encoding='utf-8')).get('analysis_pending_chunks',0))

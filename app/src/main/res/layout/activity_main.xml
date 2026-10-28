@@ -7,6 +7,7 @@
     android:orientation="vertical"
     android:background="#000000">
 
+    <TextView android:id="@+id/tuningWarning" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#942D27" android:textColor="#FFFFFF" android:padding="8dp" android:visibility="gone" android:textSize="14sp" />
     <WebView
         android:id="@+id/web"
         android:layout_width="match_parent"
@@ -78,6 +79,7 @@
             android:textSize="13sp"
             android:text="@string/btn_settings" />
 
+        <Button android:id="@+id/btnTuningProfiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:minWidth="0dp" android:background="@android:color/transparent" android:textColor="#FFFFFF" android:textSize="13sp" android:text="튜닝" />
         <Button
             android:id="@+id/btnDevices"
             android:layout_width="0dp"

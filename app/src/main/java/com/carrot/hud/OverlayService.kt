@@ -26,6 +26,12 @@ import android.widget.ImageButton
  */
 class OverlayService : Service() {
 
+    private val healthHandler=android.os.Handler(android.os.Looper.getMainLooper())
+    private val healthPoll=object:Runnable {override fun run(){
+        val text=TuningProfileHealth.text(applicationContext)
+        overlay?.findViewById<android.widget.TextView>(R.id.overlayTuningWarning)?.let {it.text=text;it.visibility=if(text.isBlank())View.GONE else View.VISIBLE}
+        healthHandler.postDelayed(this,5000)
+    }}
     private var wm: WindowManager? = null
     private var overlay: View? = null
 
@@ -36,6 +42,7 @@ class OverlayService : Service() {
         startForeground(NOTIF_ID, buildNotification())
         DriveArchive.attach(this, this)
         addOverlay()
+        healthHandler.post(healthPoll)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
@@ -141,6 +148,7 @@ class OverlayService : Service() {
 
     override fun onDestroy() {
         DriveArchive.detach(this)
+        healthHandler.removeCallbacks(healthPoll)
         super.onDestroy()
         try {
             overlay?.let { wm?.removeView(it) }

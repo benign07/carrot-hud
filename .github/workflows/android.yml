@@ -7,7 +7,31 @@ on:
   workflow_dispatch:
 
 jobs:
+  windows_profiles:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build Windows profile client
+        shell: pwsh
+        run: dotnet publish pc/tuning_lab/CarrotTuningLab.csproj -c Release -r win-x64 --self-contained true -o windows-output -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+      - name: Verify portable profile roundtrips and settings references
+        shell: pwsh
+        run: |
+          $taskWindowsTest = Start-Process -FilePath (Resolve-Path './windows-output/CarrotTuningLab.exe') -ArgumentList @('--self-test', 'windows-profile-tests.json') -WindowStyle Hidden -Wait -PassThru
+          if ($taskWindowsTest.ExitCode -ne 0) { throw 'Windows client test process failed' }
+          if (-not (Get-Content windows-profile-tests.json -Raw | ConvertFrom-Json).passed) { throw 'Windows profile test failed' }
+          Compress-Archive -Path windows-output/* -DestinationPath CarrotTuningLab-Windows-1.1.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WindowsTuningLab
+          path: |
+            CarrotTuningLab-Windows-1.1.zip
+            windows-profile-tests.json
   build:
+    needs: windows_profiles
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -64,6 +88,11 @@ jobs:
           path: app/build/test-results/testDebugUnitTest/*.xml
           if-no-files-found: ignore
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: WindowsTuningLab
+          path: windows-release
+
       - name: Publish Release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
@@ -71,4 +100,6 @@ jobs:
           tag_name: v${{ github.run_number }}
           name: Build ${{ github.run_number }}
           body: "Carrot HUD build ${{ github.run_number }} (versionCode ${{ github.run_number }})."
-          files: app/build/outputs/apk/debug/*.apk
+          files: |
+            app/build/outputs/apk/debug/*.apk
+            windows-release/CarrotTuningLab-Windows-1.1.zip

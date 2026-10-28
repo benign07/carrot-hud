@@ -55,6 +55,7 @@ object DriveArchive {
         try {
             val device = DeviceStore.getActive(context) ?: run { status = "오파 기기 등록 필요"; return }
             DiagnosticWidgetStatus.refresh(context, device)
+            TuningProfileHealth.refresh(context, device)
             OpUpdateMonitor.connected(context)
             val folder = root(context)
             if (!folder.isDirectory && !folder.mkdirs()) throw java.io.IOException("record directory unavailable")

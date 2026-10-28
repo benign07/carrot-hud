@@ -100,3 +100,13 @@ app/src/main/
   res/...                      layouts, icon, theme
 .github/workflows/android.yml  cloud build -> APK artifact
 ```
+
+
+## 튜닝 프로필 · 규격1
+메인 화면 **튜닝**에서 후보5종 선택, 변경값 미리보기, P 정차 후 적용·읽기 확인, 적용 전 설정 복원을 제공합니다.
+HUD용 JSON은 `CarrotTuningProfile/schema1/familyLX3/scope longitudinal`이며 종방향27개만 포함합니다. PC의184키 A/B 작업 파일과 구분합니다.
+Windows는 `pc/tuning_lab`에서 공통 JSON을 불러오고 B값을 HUD용으로 내보냅니다. 실제 차량 시뮬레이션/안전성 판정 도구는 아닙니다.
+오파에 `/api/tuning_profiles` 지원 업데이트가 필요합니다. 구버전·롤백에서 미지원이면 적용만 차단하고 기존 HUD는 유지합니다.
+미완료 적용은 앱·플로팅 HUD·위젯에 표시하며, 연결 불가 때 경고를 지우지 않습니다. 응답을 잃어도 쓰기를 자동 재전송하지 않습니다.
+프로필 적용은 모드3 등 포함된 종방향 값 전체를 지정값으로 맞춥니다. 이후 바꾼 시간거리도 덮어쓸 수 있으므로 실제 변경 목록을 확인하세요.
+휴대폰 사용자 프로필은 앱 데이터에, 오파 적용 기록은 `/data/community/tuning_profiles/transaction-v1.json`에 보관하여 소스 업데이트와 분리합니다.

@@ -13,3 +13,7 @@ build/
 **/__pycache__/
 *.pairing.json
 receiver-config.json
+
+pc/tuning_lab/bin/
+pc/tuning_lab/obj/
+windows-output/

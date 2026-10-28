@@ -42,6 +42,7 @@
             android:tint="#DDFFFFFF" />
     </LinearLayout>
 
+    <TextView android:id="@+id/overlayTuningWarning" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#942D27" android:textColor="#FFFFFF" android:textSize="11sp" android:padding="4dp" android:visibility="gone" />
     <WebView
         android:id="@+id/overlayWeb"
         android:layout_width="match_parent"

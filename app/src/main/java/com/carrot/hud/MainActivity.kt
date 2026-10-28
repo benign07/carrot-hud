@@ -31,6 +31,9 @@ class MainActivity : AppCompatActivity() {
     private val reconnect = object : Runnable {
         override fun run() {
             if (needsConnection) loadResolved(waitingForSettings)
+            device?.let { TuningProfileHealth.refresh(applicationContext,it) }
+            val warning=TuningProfileHealth.text(applicationContext)
+            findViewById<TextView>(R.id.tuningWarning)?.let { it.text=warning;it.visibility=if(warning.isBlank())View.GONE else View.VISIBLE }
             archiveHandler.postDelayed(this, 20_000)
         }
     }
@@ -77,6 +80,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.archiveStatus).visibility = View.GONE
 
         findViewById<View>(R.id.btnOverlay).setOnClickListener { startOverlay() }
+        findViewById<View>(R.id.btnTuningProfiles).setOnClickListener { startActivity(Intent(this, TuningProfilesActivity::class.java)) }
         findViewById<View>(R.id.btnSettings).setOnClickListener {
             device?.let { web.loadUrl(it.settingsUrl()) }
         }

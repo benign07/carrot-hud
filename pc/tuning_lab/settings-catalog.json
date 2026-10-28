@@ -2222,6 +2222,7 @@
     "selfdrive/carrot/carrot_controls.py": "85c989ea9bf43d1547b4ed471632da057c8d9e4b8843c77ea1311a84337231b8",
     "selfdrive/controls/lib/lane_planner_2.py": "c486d973ef43dd9f925980d9629986f45d05b4a65fd47fccda4dae4cce6cdbd2",
     "selfdrive/controls/lib/flexible_gap.py": "dc799bfb40dea4f3e10847a57a072aedab1a6a74cb98c490b664926b7d77ff73",
-    "opendbc_repo/opendbc/car/hyundai/lx3_haptic_notifications.py": "19419019764695a94ca87cdf10a3beeec9fe0e5f79ab10e5bedbe3cc470d673c"
+    "opendbc_repo/opendbc/car/hyundai/lx3_haptic_notifications.py": "19419019764695a94ca87cdf10a3beeec9fe0e5f79ab10e5bedbe3cc470d673c",
+    "selfdrive/controls/lib/longitudinal_planner.py": "8b894c685e1f11b11704d76cbe652c0ebe3839daa4a9fe3278817e4c44e48598"
   }
 }

@@ -63,7 +63,7 @@ public partial class MainWindow:Window {
   SettingsGrid.SizeChanged+=(_,_)=>SettingsGrid.Columns[0].Width=new DataGridLength(Math.Max(260,SettingsGrid.ActualWidth-374));
   Category.Items.Add("전체 설정");foreach(var g in Rows.Select(r=>r.Meta.Group).Distinct())Category.Items.Add(g);Category.SelectedIndex=0;
   Gap.SelectedIndex=0;Situation.SelectedIndex=0;SummaryTabs.SelectedIndex=1;
-  VersionText.Text=$"v1.1 · 프로필 규격1 · 설정 {Rows.Count}개 · 기준 소스 {Catalog.SourceCommit[..8]}";
+  VersionText.Text=$"v1.2 · 통합 프리셋 · 규격1 · 설정 {Rows.Count}개 · 기준 소스 {Catalog.SourceCommit[..8]}";
   bool restored=false;
   if(!testMode&&File.Exists(Session)){try{Apply(Profiles.ReadPack(File.ReadAllText(Session),Catalog));restored=true;}catch(Exception e){restoreFailed=true;StatusText.Text="이전 작업 파일을 유지하며 자동 저장을 중지했습니다. 불러오기 실패: "+e.Message;}}
   ready=true;RefreshAll();if(restored)StatusText.Text="지난 PC 시험안을 복원했습니다. 차량에는 전송하지 않습니다.";
@@ -136,8 +136,11 @@ public partial class MainWindow:Window {
   Speed.Text="nan";RefreshAll();Assert(((TextBlock)SummaryB.Children[0]).Text.Contains("입력 범위"),"invalid context blocks summary");
   Speed.Text="50";Search.Text="Approach";RefreshAll();SettingsGrid.SelectedItem=r;UpdateDetail();Assert(DetailTitle.Text==r.Title,"detail selection updated");
   SummaryTabs.SelectedIndex=3;root.UpdateLayout();DrawAnimation(.5);Assert(AnimationCanvas.Children.Count>20,"animation rendered");
+  using(var presets=JsonDocument.Parse(Catalog.ReadResource("tuning_profiles_v1.json"))){ApplyPortable(presets.RootElement.GetProperty("profiles")[0].GetRawText());}
+  Assert(Rows.Single(x=>x.Name=="ApproachComfortEnabled").Value(true)==1&&Rows.Single(x=>x.Name=="ApproachFlexibleGap").Value(true)==1,"combined functions loaded in B");
+  Assert(ProfileNoteBox.Visibility==Visibility.Visible&&ProfileNote.Text.Contains("공통ON"),"combined intent visible");root.UpdateLayout();
   var bitmap=new RenderTargetBitmap(1580,980,96,96,PixelFormats.Pbgra32);root.UpdateLayout();bitmap.Render(root);var enc=new PngBitmapEncoder();enc.Frames.Add(BitmapFrame.Create(bitmap));using(var output=File.Create(imagePath))enc.Save(output);
-  return new{passed=true,checks=7,rendered_preview=imagePath,scope="WPF own-control integration and render, not physical input or live screen capture"};
+  return new{passed=true,checks=9,rendered_preview=imagePath,scope="WPF own-control integration and render, not physical input or live screen capture"};
  }
 
  ProfilePack Pack()=>new(){SourceCommit=Catalog.SourceCommit,BaselineLabel=label,Baseline=Baseline(),A=Values(false),B=Values(true),Origins=Rows.ToDictionary(r=>r.Name,r=>r.BaselineSource)};
@@ -146,7 +149,22 @@ public partial class MainWindow:Window {
  static string ReadLimited(string path){if(new FileInfo(path).Length>4*1024*1024)throw new InvalidDataException("파일 크기는 4MB 이하로 제한합니다.");return File.ReadAllText(path);}
  void ImportBaseline(object sender,RoutedEventArgs e){var file=OpenJson("기준 설정값 가져오기 — 차량 연결 없음");if(file==null)return;try{var raw=ReadLimited(file);var values=Profiles.ReadValues(raw,Catalog);int ignored=Profiles.IgnoredKeys(raw,Catalog);if(Rows.Any(r=>!r.Valid||r.Value(false)!=r.Baseline||r.Value(true)!=r.Baseline)&&MessageBox.Show("가져온 기준값으로 현재 A/B 시험안을 초기화합니다. 계속할까요?","기준값 가져오기",MessageBoxButton.OKCancel)!=MessageBoxResult.OK)return;updating=true;foreach(var r in Rows){bool found=values.TryGetValue(r.Name,out int v);r.Baseline=found?v:r.Meta.Default;r.BaselineSource=found?Path.GetFileName(file):"누락 · 소스 기본값 대체";r.AText=r.BText=r.Baseline.ToString();}updating=false;label=$"가져옴 {values.Count}/{Rows.Count}개 · 미등록 {ignored}개 제외 · 누락은 기본값";RefreshAll();StatusText.Text=$"기준값 {values.Count}개 가져옴 / 미등록 {ignored}개 제외 / 누락 {Rows.Count-values.Count}개는 소스 기본값. 내보낸 시점을 확인해 주세요.";}catch(Exception ex){updating=false;MessageBox.Show(ex.Message,"가져오기 실패");}}
  void SaveProfile(object sender,RoutedEventArgs e){try{var pack=Pack();var d=new SaveFileDialog{Title="시험안 A/B 저장",Filter="JSON 프로필|*.json",FileName="Carrot-시험안-"+DateTime.Now.ToString("yyyyMMdd-HHmm")+".json"};if(d.ShowDialog()==true){Profiles.WriteAtomic(d.FileName,JsonSerializer.Serialize(pack,Profiles.Json));StatusText.Text="PC 프로필 저장 완료 · 차량에는 적용하지 않았습니다.";}}catch(Exception ex){MessageBox.Show(ex.Message,"저장 실패");}}
- void LoadProfile(object sender,RoutedEventArgs e){var file=OpenJson("시험안 A/B 불러오기");if(file==null)return;try{var raw=ReadLimited(file);using var doc=JsonDocument.Parse(raw);if(doc.RootElement.TryGetProperty("kind",out var kind)&&kind.GetString()=="CarrotTuningProfile"){var values=PortableProfiles.Read(raw,Catalog);updating=true;foreach(var r in Rows)if(values.TryGetValue(r.Name,out int v))r.BText=v.ToString();updating=false;RefreshAll();StatusText.Text=$"HUD 공통 프로필 {values.Count}개를 B로 불러왔습니다. 기준/A/나머지 설정은 유지됩니다.";}else{var pack=Profiles.ReadPack(raw,Catalog);Apply(pack);RefreshAll();StatusText.Text="프로필 불러오기 완료 · 원본 파일 유지";}}catch(Exception ex){MessageBox.Show(ex.Message,"불러오기 실패");}}
+ void LoadProfile(object sender,RoutedEventArgs e){var file=OpenJson("시험안 A/B 불러오기");if(file==null)return;try{var raw=ReadLimited(file);using var doc=JsonDocument.Parse(raw);if(doc.RootElement.TryGetProperty("kind",out var kind)&&kind.GetString()=="CarrotTuningProfile"){ApplyPortable(raw);}else{var pack=Profiles.ReadPack(raw,Catalog);Apply(pack);RefreshAll();StatusText.Text="프로필 불러오기 완료 · 원본 파일 유지";}}catch(Exception ex){MessageBox.Show(ex.Message,"불러오기 실패");}}
+
+ void ApplyPortable(string raw){
+  var values=PortableProfiles.Read(raw,Catalog);using var doc=JsonDocument.Parse(raw);var p=doc.RootElement;
+  updating=true;try{foreach(var row in Rows)if(values.TryGetValue(row.Name,out int v))row.BText=v.ToString();}finally{updating=false;}
+  RefreshAll();ProfileNote.Text="불러온 프리셋의 설계 의도 · 이후 B값을 수정할 수 있습니다.\n"+p.GetProperty("name").GetString()+"\n"+(p.TryGetProperty("description",out var d)?d.GetString():"");ProfileNoteBox.Visibility=Visibility.Visible;
+  StatusText.Text=$"공통 프로필 {values.Count}개를 B로 불러왔습니다. 기준/A/나머지는 유지되며 차량에 전송하지 않습니다.";
+ }
+ void ShowCombinedPresets(object sender,RoutedEventArgs e){
+  using var doc=JsonDocument.Parse(Catalog.ReadResource("tuning_profiles_v1.json"));var menu=new ContextMenu();
+  foreach(var p in doc.RootElement.GetProperty("profiles").EnumerateArray()){
+   string raw=p.GetRawText();var item=new MenuItem{Header=p.GetProperty("name").GetString(),ToolTip=p.GetProperty("description").GetString()};
+   item.Click+=(_,_)=>{try{ApplyPortable(raw);}catch(Exception ex){MessageBox.Show(ex.Message,"프리셋 확인 실패");}};menu.Items.Add(item);
+  }
+  menu.PlacementTarget=(Button)sender;menu.IsOpen=true;
+ }
  void ExportPortableProfile(object sender,RoutedEventArgs e){try{if(Rows.Any(r=>!r.Valid))throw new InvalidDataException("입력값 확인 필요");string raw=PortableProfiles.Export(Values(true),Catalog);var d=new SaveFileDialog{Title="HUD에서 적용할 종방향 프로필 내보내기",Filter="JSON 프로필|*.json",FileName="Carrot-HUD-시험안B.json"};if(d.ShowDialog()==true){Profiles.WriteAtomic(d.FileName,raw);StatusText.Text="HUD 공통 프로필 내보냄 · 종방향27개 · 차량 적용 전 HUD에서 현재값과의 차이를 확인하세요.";}}catch(Exception ex){MessageBox.Show(ex.Message,"내보내기 실패");}}
  void ExportReport(object sender,RoutedEventArgs e){try{if(CurrentContext() is not Context ctx||Rows.Any(r=>!r.Valid))throw new InvalidDataException("유효한 입력값이 필요합니다.");var d=new SaveFileDialog{Title="종합 설명 저장",Filter="텍스트 보고서|*.txt",FileName="Carrot-설정비교-"+DateTime.Now.ToString("yyyyMMdd-HHmm")+".txt"};if(d.ShowDialog()!=true)return;StringBuilder s=new();s.AppendLine($"Carrot 설정 비교 · 소스 {Catalog.SourceCommit}\n기준: {label}\n차량 전송 없음. 실차 궤적/안전성 예측 아님.\n");foreach(bool b in new[]{false,true}){s.AppendLine(b?"=== 시험안 B ===":"=== 시험안 A ===");foreach(var f in Rules.Explain(Values(b),Baseline(),ctx))s.AppendLine(f.Section+"\n"+f.Text+"\n");}s.AppendLine("=== A/B 차이 ===\n"+DifferenceText.Text+"\n\n=== 전체 설정 및 개별 설명 ===");foreach(var r in Rows)s.AppendLine($"\n{r.Name} / {r.Title}\n기준 {r.Baseline} [{r.BaselineSource}] / A {r.Value(false)} / B {r.Value(true)}\n{r.Description}\nB 조건: {r.State}");Profiles.WriteAtomic(d.FileName,s.ToString());StatusText.Text="전체 설정과 종합 설명을 저장했습니다.";}catch(Exception ex){MessageBox.Show(ex.Message,"보고서 저장 실패");}}
  void ResetBoth(object sender,RoutedEventArgs e){updating=true;foreach(var r in Rows)r.AText=r.BText=r.Baseline.ToString();updating=false;RefreshAll();}

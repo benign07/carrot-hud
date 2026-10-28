@@ -17,7 +17,7 @@ class TuningProfilesTest {
         for(i in 0 until a.length()) {
             val v=TuningProfiles.parse(a.getJSONObject(i).toString());assertEquals(27,v.getJSONObject("values").length())
             assertEquals(TuningProfiles.units.keys,v.getJSONObject("values").keys().asSequence().toSet())
-            assertFalse(v.getJSONObject("values").has("DisableDM"));assertFalse(v.getJSONObject("values").has("UseLaneLineSpeed"))
+            assertEquals(1,v.getJSONObject("values").getInt("ApproachComfortEnabled"));assertEquals(1,v.getJSONObject("values").getInt("ApproachFlexibleGap"));assertTrue(v.getJSONObject("values").getInt("LaunchFollowStrength")>0);assertFalse(v.getJSONObject("values").has("DisableDM"));assertFalse(v.getJSONObject("values").has("UseLaneLineSpeed"))
             val exported=TuningProfiles.fromValues("current",v.getJSONObject("values"));assertTrue(TuningProfiles.matches(exported,state(v)))
         }
     }
@@ -28,9 +28,9 @@ class TuningProfilesTest {
     }
     @Test fun duplicateKeysNumbersTrailingDataAndBadUnitsRejected() {
         rejects("{\"kind\":\"x\",\"kind\":\"CarrotTuningProfile\"}")
-        val raw=p().toString();rejects(raw+" {}");rejects(raw.replace("\"ApproachCoastStrength\":60","\"ApproachCoastStrength\":true"))
-        rejects(raw.replace("\"ApproachCoastStrength\":60","\"ApproachCoastStrength\":60.0"))
-        rejects(raw.replace("\"ApproachCoastStrength\":60","\"ApproachCoastStrength\":\"60\""))
+        val raw=p().toString();val coast=p().getJSONObject("values").getInt("ApproachCoastStrength");rejects(raw+" {}");rejects(raw.replace("\"ApproachCoastStrength\":$coast","\"ApproachCoastStrength\":true"))
+        rejects(raw.replace("\"ApproachCoastStrength\":$coast","\"ApproachCoastStrength\":60.0"))
+        rejects(raw.replace("\"ApproachCoastStrength\":$coast","\"ApproachCoastStrength\":\"60\""))
         rejects(p().apply {getJSONObject("units").put("TFollowGap1","seconds")}.toString())
         rejects(p().apply {getJSONObject("values").put("DisableDM",0);getJSONObject("units").put("DisableDM","bool-int")}.toString())
     }
@@ -39,7 +39,7 @@ class TuningProfilesTest {
         try{TuningProfiles.validateFor(profile,s);fail()}catch(_:Exception){}
         val s2=state(profile);s2.getJSONObject("fields").getJSONObject("ApproachCoastStrength").put("max",40)
         try{TuningProfiles.validateFor(profile,s2);fail()}catch(_:Exception){}
-        assertEquals(60,profile.getJSONObject("values").getInt("ApproachCoastStrength"))
+        assertEquals(p().getJSONObject("values").getInt("ApproachCoastStrength"),profile.getJSONObject("values").getInt("ApproachCoastStrength"))
     }
     @Test fun uncertainApplyNeverAutomaticallyRepeatsPost() {
         var posts=0;val api=TuningApi {method,_,_->if(method=="POST"){posts++;throw java.io.IOException("response lost")}else state(p())}
@@ -59,6 +59,11 @@ class TuningProfilesTest {
           "x":1}""", """{"x":-0}""", """{"x":"bad
           text"}""")
         for(raw in bad) {try{StrictTuningJson.check(raw);fail(raw)}catch(_:Exception){}}
+    }
+
+    @Test fun earlierV1UserProfilesRemainImportable() {
+        val old=p().put("id","legacy-v47");old.getJSONObject("values").put("ApproachFlexibleGap",0)
+        assertEquals(0,TuningProfiles.parse(old.toString()).getJSONObject("values").getInt("ApproachFlexibleGap"))
     }
 
 }

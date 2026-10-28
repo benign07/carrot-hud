@@ -23,12 +23,12 @@ jobs:
           $taskWindowsTest = Start-Process -FilePath (Resolve-Path './windows-output/CarrotTuningLab.exe') -ArgumentList @('--self-test', 'windows-profile-tests.json') -WindowStyle Hidden -Wait -PassThru
           if ($taskWindowsTest.ExitCode -ne 0) { throw 'Windows client test process failed' }
           if (-not (Get-Content windows-profile-tests.json -Raw | ConvertFrom-Json).passed) { throw 'Windows profile test failed' }
-          Compress-Archive -Path windows-output/* -DestinationPath CarrotTuningLab-Windows-1.1.zip
+          Compress-Archive -Path windows-output/* -DestinationPath CarrotTuningLab-Windows-1.2.zip
       - uses: actions/upload-artifact@v4
         with:
           name: WindowsTuningLab
           path: |
-            CarrotTuningLab-Windows-1.1.zip
+            CarrotTuningLab-Windows-1.2.zip
             windows-profile-tests.json
   build:
     needs: windows_profiles
@@ -102,4 +102,4 @@ jobs:
           body: "Carrot HUD build ${{ github.run_number }} (versionCode ${{ github.run_number }})."
           files: |
             app/build/outputs/apk/debug/*.apk
-            windows-release/CarrotTuningLab-Windows-1.1.zip
+            windows-release/CarrotTuningLab-Windows-1.2.zip

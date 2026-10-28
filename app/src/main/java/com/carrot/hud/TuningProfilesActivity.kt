@@ -51,7 +51,7 @@ class TuningProfilesActivity:AppCompatActivity() {
         fun button(s:String,action:()->Unit)=Button(this).also {it.text=s;it.setOnClickListener {action()};box.addView(it)}
         text("튜닝 프로필",24f)
         status=text("오파 연결·프로필 규격 확인 전")
-        text("A/B 후보 목표는 개선 보장이 아닙니다. 정차·P·조향/가감속 해제 후 변경합니다. 프로필은 종방향 설정만 다루며 조향·DM·카메라 설정은 보존합니다.",14f)
+        text("다섯 통합 조합은 접근 감속·부드러운 정지·조건부 간격 유연화·출발 후 추종을 공통 사용하고 강도·시간거리·가속 상한을 다르게 조합합니다. 개선 보장이 아니며 P·속도0·제어 해제 후 변경합니다. 조향·DM·카메라는 보존합니다.",14f)
         selector=Spinner(this);box.addView(selector)
         selector.onItemSelectedListener=object:android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(p:android.widget.AdapterView<*>?,v:android.view.View?,position:Int,id:Long){preview=null;previewProfile=null;applyButton.isEnabled=false;details.text=profiles.getOrNull(position)?.optString("description","") ?: ""}

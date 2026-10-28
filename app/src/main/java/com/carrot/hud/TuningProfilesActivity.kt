@@ -62,7 +62,7 @@ class TuningProfilesActivity:AppCompatActivity() {
         applyButton=button("확인한 프로필 적용") {confirmApply()}.apply {isEnabled=false}
         button("선택 프로필 JSON 내보내기") {selected()?.let {exportRaw=it.toString(2);exportFile.launch("carrot-tuning-${it.getString("id")}.json")}}
         button("HUD·시뮬레이터 프로필 가져오기") {importFile.launch(arrayOf("application/json","text/plain"))}
-        button("현재 저장값 프로필 내보내기") {runDevice {api,_ ->val snapshot=api.state();val p=TuningProfiles.fromValues("현재 저장 설정",snapshot.getJSONObject("values")).put("behavior_revision",snapshot.optString("behavior_revision"));runOnUiThread {exportRaw=p.toString(2);exportFile.launch("carrot-tuning-current.json")}}}
+        button("현재 저장값 프로필 내보내기") {runDevice {api,_ ->val snapshot=api.state();require(!snapshot.optBoolean("in_progress")&&!snapshot.optBoolean("recovery_required")) {"미완료 적용부터 확인하세요."};val p=TuningProfiles.fromValues("현재 저장 설정",snapshot.getJSONObject("values")).put("behavior_revision",snapshot.optString("behavior_revision"));runOnUiThread {exportRaw=p.toString(2);exportFile.launch("carrot-tuning-current.json")}}}
         button("직전 프로필 적용 전 값 확인·복원") {val s=state?.optJSONObject("receipt");if(s?.optString("phase")!="complete")status.text="완료된 적용 기록이 없습니다." else showPreview(TuningProfiles.fromValues("직전 프로필 적용 전",s.getJSONObject("before")))}
         recoverButton=button("미완료 프로필 적용 복구") {confirmRecovery()}.apply {isEnabled=false}
         archiveButton=button("복구 기록 문제 · 원본 보존 후 다시 확인") {confirmArchive()}.apply {isEnabled=false}
@@ -119,9 +119,10 @@ class TuningProfilesActivity:AppCompatActivity() {
         state=s;recoverButton.isEnabled=s.optBoolean("recovery_required") && s.optJSONObject("receipt")?.optString("phase") in listOf("applying","recovery_required")
         archiveButton.isEnabled=s.optBoolean("recovery_required") && s.optString("journal_sha256").matches(Regex("[a-f0-9]{64}"))
         val p=pending();val id=p.getString("request_id",null);val r=s.optJSONObject("receipt")
-        val confirmation=if(id!=null && r?.optString("request_id")==id && r.optString("phase")=="complete") {p.edit().clear().commit();"직전 요청 저장 완료 확인"} else if(id!=null) "이전 요청 완료 미확인 · 기록을 확인하세요" else "연결·프로필 규격1 확인"
+        val confirmation=if(id!=null && r?.optString("request_id")==id && r.optString("phase")=="complete") {p.edit().clear().commit();"직전 요청 저장 완료 확인"} else if(id!=null && r?.optString("request_id")==id && r.optString("phase")=="rolled_back") {p.edit().clear().commit();"이전 적용 실패 · 적용 전 값 복원 확인"} else if(id!=null) "이전 요청 완료 미확인 · 기록을 확인하세요" else "연결·프로필 규격1 확인"
         status.text="$confirmation · 기기 ${s.getJSONObject("context").getString("serial")}\n${s.optString("note")}"
         if(r?.optString("phase")=="complete")status.append("\n마지막 적용: ${r.optString("profile_name")} · "+if(s.optBoolean("current_matches_last")) "현재 저장값 일치" else "이후 개별 설정 변경 감지")
+        if(s.optBoolean("unverified_previous"))status.append("\n보존한 이전 결과 미확인 · 전체 프로필 저장 검증 전까지 표시 유지")
         if(s.optBoolean("in_progress"))status.append("\n적용 진행 중 · 완료 상태를 다시 확인합니다.")
         if(s.optBoolean("recovery_required"))status.append("\n이전 미완료 적용 복구가 필요합니다. 새 적용은 차단됩니다.")
     }}
@@ -157,7 +158,7 @@ class TuningProfilesActivity:AppCompatActivity() {
                 require(current.id==d.id) {"대상 기기가 바뀌었습니다. 다시 미리보기하세요."}
                 val id=UUID.randomUUID().toString().replace("-","")
                 require(pending().edit().putString("request_id",id).putString("device_id",d.id).commit())
-                try {api.apply(p,v,id)}finally {try{loadState(api.state())}catch(_:Exception){}}
+                try {val result=api.apply(p,v,id);if(result.optString("phase")=="unchanged")pending().edit().clear().commit()}finally {try{loadState(api.state())}catch(_:Exception){}}
                 val s=api.state();require(TuningProfiles.matches(p,s)) {"저장값 불일치 · 자동 재적용 없음"}
                 runOnUiThread {preview=null;previewProfile=null;applyButton.isEnabled=false;status.text="요청한 설정의 저장값 일치 확인 · 실제 주행 효과는 진단에서 확인합니다."}
             }}.show()

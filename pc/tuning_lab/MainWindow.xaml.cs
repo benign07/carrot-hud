@@ -63,7 +63,7 @@ public partial class MainWindow:Window {
   SettingsGrid.SizeChanged+=(_,_)=>SettingsGrid.Columns[0].Width=new DataGridLength(Math.Max(260,SettingsGrid.ActualWidth-374));
   Category.Items.Add("전체 설정");foreach(var g in Rows.Select(r=>r.Meta.Group).Distinct())Category.Items.Add(g);Category.SelectedIndex=0;
   Gap.SelectedIndex=0;Situation.SelectedIndex=0;SummaryTabs.SelectedIndex=1;
-  VersionText.Text=$"v1.0 · 설정 {Rows.Count}개 · 기준 소스 {Catalog.SourceCommit[..8]}";
+  VersionText.Text=$"v1.1 · 프로필 규격1 · 설정 {Rows.Count}개 · 기준 소스 {Catalog.SourceCommit[..8]}";
   bool restored=false;
   if(!testMode&&File.Exists(Session)){try{Apply(Profiles.ReadPack(File.ReadAllText(Session),Catalog));restored=true;}catch(Exception e){restoreFailed=true;StatusText.Text="이전 작업 파일을 유지하며 자동 저장을 중지했습니다. 불러오기 실패: "+e.Message;}}
   ready=true;RefreshAll();if(restored)StatusText.Text="지난 PC 시험안을 복원했습니다. 차량에는 전송하지 않습니다.";

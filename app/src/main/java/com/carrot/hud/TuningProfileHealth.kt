@@ -17,7 +17,7 @@ object TuningProfileHealth {
         if(DeviceStore.getActive(c)?.id!=d.id)return
         val r=s.optJSONObject("receipt")
         val keys=r?.optJSONArray("attempted")
-        val message=if(s.optBoolean("in_progress")) "튜닝 프로필 적용 진행 중 · 완료 확인 전" else if(s.optBoolean("recovery_required")) "튜닝 적용 결과·복구 확인 필요 · P 정차 후 튜닝 메뉴\n"+(if(keys==null) "기록을 확인하세요" else (0 until keys.length()).joinToString(", ") {keys.optString(it)}) else ""
+        val message=if(s.optBoolean("in_progress")) "튜닝 프로필 적용 진행 중 · 완료 확인 전" else if(s.optBoolean("recovery_required")) "튜닝 적용 결과·복구 확인 필요 · P 정차 후 튜닝 메뉴\n"+(if(keys==null) "기록을 확인하세요" else (0 until keys.length()).joinToString(", ") {keys.optString(it)}) else if(s.optBoolean("unverified_previous")) "보존한 이전 튜닝 결과 미확인 · P에서 전체 프로필 확인 필요" else ""
         prefs(c).edit().putString(d.id,message).commit()
         ArchiveWidgetStatus.publish(c)
     }

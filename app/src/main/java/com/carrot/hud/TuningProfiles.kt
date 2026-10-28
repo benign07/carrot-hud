@@ -121,3 +121,45 @@ class TuningApi(private val exchange:(String,String,JSONObject?)->JSONObject) {
 
 /** Do not rely on Android JSONObject silently overwriting duplicate keys. */
 object StrictTuningJson {
+    fun check(raw:String) {
+        var i=0
+        fun blank(c:Char)=c.code in setOf(32,9,10,13)
+        fun space(){while(i<raw.length&&blank(raw[i]))i++}
+        fun take():Char{space();require(i<raw.length){"JSON 끝"};return raw[i++]}
+        fun string(){
+            while(i<raw.length){
+                val c=raw[i++];if(c.code==34)return
+                require(c.code>=32){"문자열의 제어문자"}
+                if(c.code==92){
+                    require(i<raw.length);val e=raw[i++]
+                    if(e=='u'){require(i+4<=raw.length&&raw.substring(i,i+4).all{it in "0123456789abcdefABCDEF"});i+=4}
+                    else require(e.code in setOf(34,92,47,98,102,110,114,116))
+                }
+            }
+            error("닫히지 않은 문자열")
+        }
+        fun value(depth:Int){
+            require(depth<=32);space();val begin=i
+            when(take()){
+                '{'->{
+                    val names=mutableSetOf<String>();space()
+                    if(i<raw.length&&raw[i]=='}'){i++;return}
+                    while(true){
+                        require(take().code==34);val start=i-1;string()
+                        val key=JSONTokener(raw.substring(start,i)).nextValue() as String
+                        require(names.add(key)){"중복 JSON 키: $key"};require(take()==':');value(depth+1)
+                        val end=take();if(end=='}')return;require(end==',')
+                    }
+                }
+                '['->{space();if(i<raw.length&&raw[i]==']'){i++;return};while(true){value(depth+1);val end=take();if(end==']')return;require(end==',')}}
+                '"'->string()
+                else->{
+                    while(i<raw.length&&!blank(raw[i])&&raw[i] !in charArrayOf(',',']','}'))i++
+                    val token=raw.substring(begin,i)
+                    require(token!="-0"&&(token in listOf("true","false","null")||token.matches(Regex("""-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?""")))){"JSON 값 형식"}
+                }
+            }
+        }
+        value(0);space();require(i==raw.length){"JSON 뒤 추가 데이터"}
+    }
+}

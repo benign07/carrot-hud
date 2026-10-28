@@ -346,5 +346,199 @@
       },
       "behavior_revision": "a81afe04327b34c10425e3033ed8f087f702c5f6abae38fe3df2248fa3097aff"
     }
-  ]
+  ],
+  "contract": {
+    "schema": 1,
+    "fields": {
+      "MyDrivingMode": {
+        "unit": "mode-enum-v1",
+        "min": 1,
+        "max": 4,
+        "default": 3,
+        "native_type": "INT"
+      },
+      "ApproachComfortEnabled": {
+        "unit": "bool-int",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "native_type": "BOOL"
+      },
+      "ApproachCoastStrength": {
+        "unit": "percent-strength-v1",
+        "min": 0,
+        "max": 100,
+        "default": 40,
+        "native_type": "INT"
+      },
+      "ApproachBrakeMargin": {
+        "unit": "percent-strength-v1",
+        "min": 0,
+        "max": 100,
+        "default": 40,
+        "native_type": "INT"
+      },
+      "ApproachStopSmooth": {
+        "unit": "percent-strength-v1",
+        "min": 0,
+        "max": 100,
+        "default": 40,
+        "native_type": "INT"
+      },
+      "ApproachTrafficCalm": {
+        "unit": "percent-strength-v1",
+        "min": 0,
+        "max": 100,
+        "default": 40,
+        "native_type": "INT"
+      },
+      "ApproachFlexibleGap": {
+        "unit": "bool-int",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "native_type": "BOOL"
+      },
+      "ApproachFlexibleGapMin": {
+        "unit": "moving-tf-percent",
+        "min": 70,
+        "max": 100,
+        "default": 70,
+        "native_type": "INT"
+      },
+      "TFollowGap1": {
+        "unit": "centisecond",
+        "min": 40,
+        "max": 300,
+        "default": 110,
+        "native_type": "INT"
+      },
+      "TFollowGap2": {
+        "unit": "centisecond",
+        "min": 40,
+        "max": 300,
+        "default": 120,
+        "native_type": "INT"
+      },
+      "TFollowGap3": {
+        "unit": "centisecond",
+        "min": 40,
+        "max": 300,
+        "default": 140,
+        "native_type": "INT"
+      },
+      "TFollowGap4": {
+        "unit": "centisecond",
+        "min": 40,
+        "max": 300,
+        "default": 160,
+        "native_type": "INT"
+      },
+      "EnableSpeedTF": {
+        "unit": "speed-tf-selector-v1",
+        "min": -3,
+        "max": 50,
+        "default": 0,
+        "native_type": "INT"
+      },
+      "TFollowDecelBoost": {
+        "unit": "percent-strength-v1",
+        "min": 0,
+        "max": 100,
+        "default": 10,
+        "native_type": "INT"
+      },
+      "DynamicTFollow": {
+        "unit": "percent-strength-v1",
+        "min": 0,
+        "max": 100,
+        "default": 0,
+        "native_type": "INT"
+      },
+      "StopDistanceCarrot": {
+        "unit": "centimeter",
+        "min": 400,
+        "max": 1000,
+        "default": 600,
+        "native_type": "INT"
+      },
+      "AChangeCostStarting": {
+        "unit": "cost-weight",
+        "min": 0,
+        "max": 200,
+        "default": 10,
+        "native_type": "INT"
+      },
+      "CruiseMaxVals0": {
+        "unit": "centi-mps2",
+        "min": 1,
+        "max": 250,
+        "default": 160,
+        "native_type": "INT"
+      },
+      "CruiseMaxVals1": {
+        "unit": "centi-mps2",
+        "min": 1,
+        "max": 250,
+        "default": 160,
+        "native_type": "INT"
+      },
+      "CruiseMaxVals2": {
+        "unit": "centi-mps2",
+        "min": 1,
+        "max": 250,
+        "default": 120,
+        "native_type": "INT"
+      },
+      "CruiseMaxVals3": {
+        "unit": "centi-mps2",
+        "min": 1,
+        "max": 250,
+        "default": 100,
+        "native_type": "INT"
+      },
+      "CruiseMaxVals4": {
+        "unit": "centi-mps2",
+        "min": 1,
+        "max": 250,
+        "default": 80,
+        "native_type": "INT"
+      },
+      "CruiseMaxVals5": {
+        "unit": "centi-mps2",
+        "min": 1,
+        "max": 250,
+        "default": 70,
+        "native_type": "INT"
+      },
+      "CruiseMaxVals6": {
+        "unit": "centi-mps2",
+        "min": 1,
+        "max": 250,
+        "default": 60,
+        "native_type": "INT"
+      },
+      "LaunchFollowStrength": {
+        "unit": "percent-strength-v1",
+        "min": 0,
+        "max": 20,
+        "default": 0,
+        "native_type": "VIRTUAL"
+      },
+      "MyDrivingModeAuto": {
+        "unit": "auto-mode-enum-v1",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "native_type": "INT"
+      },
+      "DynamicTFollowLC": {
+        "unit": "percent-strength-v1",
+        "min": 20,
+        "max": 100,
+        "default": 0,
+        "native_type": "INT"
+      }
+    }
+  }
 }

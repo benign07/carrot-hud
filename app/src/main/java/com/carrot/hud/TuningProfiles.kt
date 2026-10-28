@@ -48,6 +48,8 @@ object TuningProfiles {
             "HUD용 튜닝 프로필이 아닙니다. 시뮬레이터에서 HUD 프로필 내보내기를 사용하세요."
         }
         require(p.optString("id").matches(Regex("[a-z0-9][a-z0-9-]{0,63}")) && p.optString("name").trim().length in 1..80)
+        val allowed=setOf("kind","schema","family","scope","id","name","description","values","units","source_commit","behavior_revision")
+        require(keys(p).all { it in allowed }) {"지원하지 않는 최상위 프로필 필드"}
         val v=p.getJSONObject("values"); val u=p.getJSONObject("units")
         require(v.length() in 1..units.size && keys(u)==keys(v))
         for(k in keys(v)) {
@@ -84,6 +86,7 @@ class TuningApi(private val exchange:(String,String,JSONObject?)->JSONObject) {
         require(it.optBoolean("ok") && it.opt("schema")==1 && it.optString("family")=="LX3") { "오파 프로필 지원 업데이트가 필요합니다." }
         require(it.getJSONObject("context").getString("serial").isNotBlank())
     }
+    fun receipt():JSONObject=exchange("GET","/api/tuning_profiles/receipt",null).also { require(it.optBoolean("ok") && it.opt("schema")==1) }
     fun preview(profile:JSONObject):JSONObject {
         TuningProfiles.parse(profile.toString())
         return exchange("POST","/api/tuning_profiles/preview",JSONObject().put("profile",profile)).also {
@@ -94,9 +97,10 @@ class TuningApi(private val exchange:(String,String,JSONObject?)->JSONObject) {
     fun apply(profile:JSONObject,preview:JSONObject,id:String):JSONObject {
         require(id.matches(Regex("[a-f0-9]{32}")))
         val body=JSONObject().put("profile",profile).put("revision",preview.getString("revision"))
-            .put("serial",preview.getJSONObject("context").getString("serial")).put("request_id",id)
+            .put("serial",preview.getJSONObject("context").getString("serial")).put("profile_hash",preview.getString("profile_hash")).put("request_id",id)
         return exchange("POST","/api/tuning_profiles/apply",body).also { require(it.optBoolean("ok")) { it.optString("error","적용 미확인") } }
     }
+    fun archive(hash:String,serial:String):JSONObject=exchange("POST","/api/tuning_profiles/archive",JSONObject().put("journal_sha256",hash).put("serial",serial)).also {require(it.optBoolean("ok")) {it.optString("error","보존 미확인")}}
     fun recover(id:String):JSONObject=exchange("POST","/api/tuning_profiles/recover",JSONObject().put("request_id",id)).also { require(it.optBoolean("ok")) { it.optString("error","복구 미확인") } }
     companion object {
         fun forDevice(d:Device)=TuningApi {method,path,body ->
@@ -117,28 +121,3 @@ class TuningApi(private val exchange:(String,String,JSONObject?)->JSONObject) {
 
 /** Do not rely on Android JSONObject silently overwriting duplicate keys. */
 object StrictTuningJson {
-    fun check(raw:String) {
-        val t=JSONTokener(raw)
-        fun value(depth:Int) {
-            require(depth<=32) {"JSON 깊이 초과"}
-            when(val c=t.nextClean()) {
-                '{' -> {
-                    val names= mutableSetOf<String>();var c1=t.nextClean()
-                    if(c1!='}') {t.back();while(true) {
-                        require(t.nextClean()=='"') {"JSON 키 형식"};val key=t.nextString('"')
-                        require(names.add(key)) {"중복 JSON 키: $key"};require(t.nextClean()==':');value(depth+1)
-                        c1=t.nextClean();if(c1=='}')break;require(c1==',')
-                    }}
-                }
-                '[' -> {if(t.nextClean()!=']') {t.back();while(true){value(depth+1);val end=t.nextClean();if(end==']')break;require(end==',')}}}
-                '"' -> t.nextString('"')
-                else -> {
-                    require(c!='\u0000');val b=StringBuilder().append(c)
-                    while(true) {val n=t.next();if(n=='\u0000')break;if(n.isWhitespace()||n in ",]}"){t.back();break};b.append(n)}
-                    require(b.toString() in listOf("true","false","null") || b.toString().matches(Regex("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?"))) {"JSON 값 형식"}
-                }
-            }
-        }
-        value(0);require(t.nextClean()=='\u0000') {"JSON 뒤의 추가 데이터"}
-    }
-}

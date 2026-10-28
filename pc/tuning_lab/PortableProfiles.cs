@@ -6,8 +6,9 @@ public static class PortableProfiles {
  public static Dictionary<string,int> Read(string raw,Catalog catalog){
   if(System.Text.Encoding.UTF8.GetByteCount(raw)>32768)throw new InvalidDataException("프로필 크기 초과");
   using var d=JsonDocument.Parse(raw);var p=d.RootElement;
-  void Unique(JsonElement e){if(e.ValueKind==JsonValueKind.Object){var names=new HashSet<string>();foreach(var x in e.EnumerateObject()){if(!names.Add(x.Name))throw new InvalidDataException("중복 JSON 키");Unique(x.Value);}}else if(e.ValueKind==JsonValueKind.Array)foreach(var x in e.EnumerateArray())Unique(x);}
+  void Unique(JsonElement e){if(e.ValueKind==JsonValueKind.Object){var names=new HashSet<string>();foreach(var x in e.EnumerateObject()){if(!names.Add(x.Name))throw new InvalidDataException("중복 JSON 키");Unique(x.Value);}}else if(e.ValueKind==JsonValueKind.Array)foreach(var x in e.EnumerateArray())Unique(x);else if(e.ValueKind==JsonValueKind.Number&&e.GetRawText()=="-0")throw new InvalidDataException("음수 영 미지원");}
   Unique(p);
+  var allowed=new HashSet<string>{"kind","schema","family","scope","id","name","description","values","units","source_commit","behavior_revision"};if(p.EnumerateObject().Any(x=>!allowed.Contains(x.Name)))throw new InvalidDataException("미지원 최상위 프로필 필드");
   if(p.GetProperty("kind").GetString()!="CarrotTuningProfile"||p.GetProperty("schema").GetInt32()!=1||p.GetProperty("family").GetString()!="LX3"||p.GetProperty("scope").GetString()!="longitudinal")throw new InvalidDataException("미지원 HUD 프로필 규격");
   if(!Regex.IsMatch(p.GetProperty("id").GetString()??"","^[a-z0-9][a-z0-9-]{0,63}$")||(p.GetProperty("name").GetString()?.Trim().Length??0) is <1 or >80)throw new InvalidDataException("프로필 이름·ID 오류");
   var values=p.GetProperty("values");var units=p.GetProperty("units");var rows=catalog.Rows.ToDictionary(x=>x.Name);

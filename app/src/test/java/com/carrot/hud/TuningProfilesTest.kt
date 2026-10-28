@@ -43,7 +43,7 @@ class TuningProfilesTest {
     }
     @Test fun uncertainApplyNeverAutomaticallyRepeatsPost() {
         var posts=0;val api=TuningApi {method,_,_->if(method=="POST"){posts++;throw java.io.IOException("response lost")}else state(p())}
-        val preview=JSONObject().put("revision","a".repeat(64)).put("context",JSONObject().put("serial","device-A"))
+        val preview=JSONObject().put("revision","a".repeat(64)).put("profile_hash","c".repeat(64)).put("context",JSONObject().put("serial","device-A"))
         try{api.apply(p(),preview,"b".repeat(32));fail()}catch(_:java.io.IOException){}
         api.state();assertEquals(1,posts)
     }
@@ -52,4 +52,13 @@ class TuningProfilesTest {
         try{StrictTuningJson.check("{\"values\":{\"x\":1,\"x\":2}}");fail()}catch(_:IllegalArgumentException){}
         try{StrictTuningJson.check("{\"x\":NaN}");fail()}catch(_:IllegalArgumentException){}
     }
+    @Test fun rfcScannerRejectsCommentsControlsAndNegativeZero() {
+        StrictTuningJson.check("""{"x":[true,false,null,0,-1,1.5]}""")
+        val bad=listOf("""{/*comment*/"x":1}""", """{//comment
+          "x":1}""", """{#comment
+          "x":1}""", """{"x":-0}""", """{"x":"bad
+          text"}""")
+        for(raw in bad) {try{StrictTuningJson.check(raw);fail(raw)}catch(_:Exception){}}
+    }
+
 }

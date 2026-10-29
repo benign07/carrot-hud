@@ -1,7 +1,7 @@
 {
   "Schema": 1,
-  "SourceCommit": "37cc7b5e545f2f6f7ae3a3aecac3c91bb6eb2959",
-  "BuiltDate": "2026-10-28",
+  "SourceCommit": "b644a27f384e1138114f0742a4e5d82db1fb9250",
+  "BuiltDate": "2026-10-29",
   "BaselineLabel": "소스 기본값 · 기기 현재 설정은 가져오기 전",
   "Rows": [
     {
@@ -2131,7 +2131,7 @@
     {
       "Name": "LaunchFollowStrength",
       "Title": "재출발 앞차 추종 보완",
-      "Description": "정지 후 움직이기 시작한 뒤, 같은 레이더 앞차가 안정적으로 멀어지고 목표거리보다1m 넘게 여유가 생기면 기존 가속표를 이 비율(%) 이내에서 보완합니다. 상대속도가 약0.6초 동안 지속적으로 증가하면 이 설정으로 허용한 보완 상한까지 점진적으로 사용합니다. 한 번의 값 튐은 증가로 인정하지 않으며 실제 가속은 MPC·커브·감속 제한이 결정합니다. 정지 해제·최소거리·제동·Panda 권한은 바꾸지 않습니다. 접근 감속·끼어들기·가까운 두 번째 앞차에는 적용하지 않습니다. 0은 기존 동작, 시험 시작은10을 권장합니다. 최대 양가속1.6m/s²를 넘기는 보완은 하지 않습니다. 실제 출발 지연이나 간격 개선을 보장하지 않습니다.",
+      "Description": "정지 후 움직이기 시작한 뒤, 같은 레이더 앞차가 안정적으로 멀어지고 목표거리보다1m 넘게 여유가 생기면 기존 가속표를 이 비율(%) 이내에서 보완합니다. 마지막 저속 정지 판정 후25초 이내에서만 후보가 됩니다. 20km/h부터 보완을 줄여40km/h에서는 완전히 종료하고, 40km/h 도달 뒤에는 다시 저속 정지 판정이 있어야 재개합니다. 40km/h 이상에서는 이 보완이 가속 상한을 높이지 않으며 기존 MPC 추종·속도별 거리 보정·접근 보완은 그대로입니다. 40km/h 도달 전에는25초 창 안에서 조건에 따라 대기·재개할 수 있습니다. 상대속도가 약0.6초 동안 지속적으로 증가하면 이 설정으로 허용한 저속 보완 상한까지 점진적으로 사용합니다. 한 번의 값 튐은 증가로 인정하지 않으며 실제 가속은 MPC·커브·감속 제한이 결정합니다. 정지 해제·최소거리·제동·Panda 권한은 바꾸지 않습니다. 접근 감속·끼어들기·가까운 두 번째 앞차에는 적용하지 않습니다. 0은 기존 동작, 시험 시작은10을 권장합니다. 최대 양가속1.6m/s²를 넘기는 보완은 하지 않습니다. 실제 출발 지연이나 간격 개선을 보장하지 않습니다.",
       "Category": "개발 중 기능 / 신기능 모아보기 / 재출발 추종",
       "Group": "개발 중 기능",
       "Min": 0,
@@ -2214,10 +2214,10 @@
     }
   ],
   "SourceHashes": {
-    "selfdrive/carrot/server/services/settings.py": "13fefbf9f29c63d8291ab713b8d80be8c64e6601ba8ca50adc6d554173ee1393",
+    "selfdrive/carrot/server/services/settings.py": "6cde78fd89a416d08839a2a72bcbd76cddff25bad39bd28e625e38f4f79ceb92",
     "selfdrive/carrot_settings.json": "868f6acf60054d0c6952a7e5389490720fc50ae28cdf301ce03d4372cb10f680",
     "selfdrive/carrot/carrot_functions.py": "70ff3bfa6ba47097362620bf2fe4a847bd85286c82e3a7483cdee324379458a8",
-    "selfdrive/controls/lib/approach_comfort.py": "7f1003c86791137bce3a3034c5ff256e476e3f86f800bf7cc1a14fbc93ece2e4",
+    "selfdrive/controls/lib/approach_comfort.py": "0a341ae46eb957ffad525032a4291e59b6ce73a510fce8053d613d03d6ddfb41",
     "selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py": "b6ee87678c167c2956686496de1db369c4ad19300bf764e335de0d1027d9513c",
     "selfdrive/carrot/carrot_controls.py": "85c989ea9bf43d1547b4ed471632da057c8d9e4b8843c77ea1311a84337231b8",
     "selfdrive/controls/lib/lane_planner_2.py": "c486d973ef43dd9f925980d9629986f45d05b4a65fd47fccda4dae4cce6cdbd2",

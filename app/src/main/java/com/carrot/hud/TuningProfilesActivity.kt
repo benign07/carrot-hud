@@ -73,23 +73,13 @@ class TuningProfilesActivity:AppCompatActivity() {
     }
     private fun selected()=profiles.getOrNull(selector.selectedItemPosition)
     private fun loadProfiles() {
-        val list= mutableListOf<JSONObject>();val problems= mutableListOf<String>()
-        try {
-            val built=JSONObject(assets.open("tuning_profiles_v1.json").bufferedReader().use {it.readText()}).getJSONArray("profiles")
-            for(i in 0 until built.length())list.add(TuningProfiles.parse(built.getJSONObject(i).toString()))
-        } catch(e:Exception){problems.add("내장 프로필: ${e.message}")}
-        if(users().exists())try {
-            require(users().length()<=1_310_720)
-            val a=JSONArray(users().readText());for(i in 0 until a.length())try{list.add(TuningProfiles.parse(a.getJSONObject(i).toString()))}catch(_:Exception){problems.add("기존 사용자 프로필${i+1}: 호환 안 됨·원본 보존")}
-        } catch(_:Exception){problems.add("기존 사용자 저장소: 손상/미지원·원본 보존")}
-        for(f in userDir().listFiles()?.filter {it.extension=="json"}?.sortedBy {it.name} ?: emptyList())try {
-            require(f.length()<=32768);list.add(TuningProfiles.parse(f.readText()))
-        } catch(_:Exception){problems.add("${f.name}: 호환 안 됨·원본 보존")}
-        profiles=list;selector.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,list.map {it.getString("name")})
-        if(problems.isNotEmpty())status.text=problems.joinToString("\n")
+        val catalog=TuningProfileStore.load(this);profiles=catalog.profiles
+        selector.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,profiles.map{it.getString("name")})
+        if(catalog.problems.isNotEmpty())status.text=catalog.problems.joinToString("\n")
     }
-    private fun runDevice(work:(TuningApi,Device)->Unit) {
+    private fun runDevice(mutation:Boolean=false,work:(TuningApi,Device)->Unit) {
         if(!busy.compareAndSet(false,true))return
+        if(mutation&&!TuningOperationGate.enter()){busy.set(false);status.text="다른 프로필 작업이 진행 중입니다.";return}
         applyButton.isEnabled=false
         selector.isEnabled=false
         val original=DeviceStore.getActive(this)
@@ -107,7 +97,7 @@ class TuningProfilesActivity:AppCompatActivity() {
                 try {val receipt=apiForCall?.receipt();val d=targetDevice;if(receipt!=null&&d!=null){TuningProfileHealth.observe(applicationContext,d,receipt);runOnUiThread {if(receipt.optBoolean("recovery_required")){state=receipt;recoverButton.isEnabled=receipt.optJSONObject("receipt")?.optString("phase") in listOf("applying","recovery_required");archiveButton.isEnabled=receipt.optString("journal_sha256").matches(Regex("[a-f0-9]{64}"))}}}}catch(_:Exception){}
                 runOnUiThread {status.text="완료 미확인 · 자동 재적용 없음: ${e.message}"}
             }
-            finally{busy.set(false);runOnUiThread {selector.isEnabled=true}}
+            finally{if(mutation)TuningOperationGate.leave();busy.set(false);runOnUiThread {selector.isEnabled=true}}
         }.start()
     }
     private fun loadState(s:JSONObject) {
@@ -141,7 +131,7 @@ class TuningProfilesActivity:AppCompatActivity() {
         val r=s.optJSONObject("receipt") ?: error("미완료 기록 없음")
         val before=r.getJSONObject("before");val summary=before.keys().asSequence().joinToString("\n") {"$it → ${before.get(it)}"}
         runOnUiThread {AlertDialog.Builder(this).setTitle("미완료 적용 전 값 복원").setMessage("기기 ${s.getJSONObject("context").getString("serial")}\n우리 적용값으로 확인되는 항목만 복원합니다.\n$summary")
-            .setNegativeButton("취소",null).setPositiveButton("P 정차 후 복원") {_,_->runDevice {api2,current ->require(current.id==d.id);api2.recover(r.getString("request_id"));pending().edit().clear().commit();loadState(api2.state())}}.show()}
+            .setNegativeButton("취소",null).setPositiveButton("P 정차 후 복원") {_,_->runDevice(mutation=true) {api2,current ->require(current.id==d.id);api2.recover(r.getString("request_id"));pending().edit().clear().commit();loadState(api2.state())}}.show()}
     }
     private fun confirmArchive()=runDevice {api,d ->
         val receipt=api.receipt();require(!receipt.optBoolean("in_progress")) {"적용 진행 중입니다."}
@@ -149,12 +139,12 @@ class TuningProfilesActivity:AppCompatActivity() {
         val hash=receipt.getString("journal_sha256");val serial=receipt.getJSONObject("context").getString("serial")
         val current=try {api.state().getJSONObject("values").let {v->v.keys().asSequence().joinToString("\n") {"$it = ${v.get(it)}"}}}catch(_:Exception){"현재 값 전체를 읽지 못했습니다. 설정 점검이 필요합니다."}
         runOnUiThread {AlertDialog.Builder(this).setTitle("기록 원본 보존 · 설정값 유지").setMessage("기기 $serial\n이전 적용 결과는 확인할 수 없습니다. Params를 바꾸지 않고 오류 기록만 별도 파일로 보존합니다.\n$current\n보존 후 반드시 새 미리보기로 현재 설정을 확인하세요.")
-            .setNegativeButton("취소",null).setPositiveButton("현재 값 유지·기록 보존") {_,_->runDevice {api2,target ->require(target.id==d.id);api2.archive(hash,serial);TuningProfileHealth.observe(applicationContext,target,api2.receipt());pending().edit().clear().commit();loadState(api2.state())}}.show()}
+            .setNegativeButton("취소",null).setPositiveButton("현재 값 유지·기록 보존") {_,_->runDevice(mutation=true) {api2,target ->require(target.id==d.id);api2.archive(hash,serial);TuningProfileHealth.observe(applicationContext,target,api2.receipt());pending().edit().clear().commit();loadState(api2.state())}}.show()}
     }
     private fun confirmApply() {
         val p=previewProfile ?: return;val v=preview ?: return;val d=previewDevice ?: return
         AlertDialog.Builder(this).setTitle("${p.getString("name")} 적용").setMessage("P·속도0·제어 해제 상태에서 표시된 종방향 설정을 변경합니다. 저장 확인과 실제 주행 효과는 별개입니다.")
-            .setNegativeButton("취소",null).setPositiveButton("적용") {_,_ ->runDevice {api,current ->
+            .setNegativeButton("취소",null).setPositiveButton("적용") {_,_ ->runDevice(mutation=true) {api,current ->
                 require(current.id==d.id) {"대상 기기가 바뀌었습니다. 다시 미리보기하세요."}
                 val id=UUID.randomUUID().toString().replace("-","")
                 require(pending().edit().putString("request_id",id).putString("device_id",d.id).commit())

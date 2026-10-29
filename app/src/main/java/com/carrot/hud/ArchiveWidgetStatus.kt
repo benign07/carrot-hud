@@ -17,9 +17,10 @@ object ArchiveWidgetStatus {
         val text = "${DriveArchive.status}\n${PcArchive.status}"
         val badge = OpUpdateMonitor.badge(context)
         val diagnostic = DiagnosticWidgetStatus.text(context)+TuningProfileHealth.text(context)
+        val profile=TuningWidgetStatus.text(context)
         val prefs = context.getSharedPreferences("archive_widget", Context.MODE_PRIVATE)
-        if (prefs.getString("text", "") == text && prefs.getString("badge", "") == badge && prefs.getString("diagnostic", "") == diagnostic) return
-        prefs.edit().putString("text", text).putString("badge", badge).putString("diagnostic", diagnostic).putLong("at", System.currentTimeMillis()).apply()
+        if (prefs.getString("text", "") == text && prefs.getString("badge", "") == badge && prefs.getString("diagnostic", "") == diagnostic && prefs.getString("profile","")==profile) return
+        prefs.edit().putString("text", text).putString("badge", badge).putString("diagnostic", diagnostic).putString("profile",profile).putLong("at", System.currentTimeMillis()).apply()
         val mgr = AppWidgetManager.getInstance(context)
         for ((provider, layout, field) in listOf(
             Triple(HudWidgetProvider::class.java, R.layout.widget_hud, R.id.wTransfer),
@@ -41,6 +42,9 @@ object ArchiveWidgetStatus {
         views.setTextViewText(field, text + checked)
         views.setTextViewText(if (field == R.id.wTransfer) R.id.wDiagnostic else R.id.modeDiagnostic,
             TuningProfileHealth.text(context).ifBlank { DiagnosticWidgetStatus.text(context) })
+        val profileField=if(field==R.id.wTransfer)R.id.wProfile else R.id.modeProfile
+        views.setTextViewText(profileField,TuningWidgetStatus.text(context))
+        views.setOnClickPendingIntent(profileField,TuningWidgetStatus.openIntent(context))
         val updateField = if (field == R.id.wTransfer) R.id.wUpdate else R.id.modeUpdate
         val badge = OpUpdateMonitor.badge(context)
         views.setTextViewText(updateField, badge)

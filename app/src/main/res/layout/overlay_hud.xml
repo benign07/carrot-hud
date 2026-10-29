@@ -42,6 +42,7 @@
             android:tint="#DDFFFFFF" />
     </LinearLayout>
 
+    <TextView android:id="@+id/overlayProfile" android:layout_width="match_parent" android:layout_height="28dp" android:padding="4dp" android:gravity="center_vertical" android:maxLines="1" android:ellipsize="end" android:text="프로필 선택 ▾" android:textColor="#BFE9FF" android:textSize="11sp" android:background="#193744"/>
     <TextView android:id="@+id/overlayTuningWarning" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#942D27" android:textColor="#FFFFFF" android:textSize="11sp" android:padding="4dp" android:visibility="gone" />
     <WebView
         android:id="@+id/overlayWeb"

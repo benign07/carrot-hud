@@ -28,6 +28,7 @@ class OverlayService : Service() {
 
     private val healthHandler=android.os.Handler(android.os.Looper.getMainLooper())
     private val healthPoll=object:Runnable {override fun run(){
+        overlay?.findViewById<android.widget.TextView>(R.id.overlayProfile)?.text=TuningWidgetStatus.text(applicationContext)
         val text=TuningProfileHealth.text(applicationContext)
         overlay?.findViewById<android.widget.TextView>(R.id.overlayTuningWarning)?.let {it.text=text;it.visibility=if(text.isBlank())View.GONE else View.VISIBLE}
         healthHandler.postDelayed(this,5000)
@@ -101,7 +102,7 @@ class OverlayService : Service() {
             @Suppress("DEPRECATION") WindowManager.LayoutParams.TYPE_PHONE
 
         val lp = WindowManager.LayoutParams(
-            dp(230), dp(168), type,
+            dp(230), dp(196), type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         )
@@ -139,6 +140,9 @@ class OverlayService : Service() {
             )
         }
 
+        v.findViewById<View>(R.id.overlayProfile).setOnClickListener {
+            startActivity(Intent(this,TuningQuickActivity::class.java).putExtra("device_id",DeviceStore.getActive(this)?.id).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
         wm?.addView(v, lp)
         overlay = v
     }

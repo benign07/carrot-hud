@@ -26,6 +26,7 @@
         android:textSize="22sp"
         android:textStyle="bold" />
 
+    <TextView android:id="@+id/modeProfile" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="30dp" android:gravity="center_vertical" android:maxLines="2" android:ellipsize="end" android:text="프로필 선택 ▾ · 저장 상태 확인 전" android:textColor="#BFE9FF" android:textSize="11sp" android:background="#193744" android:padding="4dp"/>
     <TextView
         android:id="@+id/modeDescription"
         android:layout_width="match_parent"
@@ -73,4 +74,5 @@
         android:text="자동 기록·PC 전송 상태 대기"
         android:textColor="#9EDDC6"
         android:textSize="9sp" />
+
 </LinearLayout>

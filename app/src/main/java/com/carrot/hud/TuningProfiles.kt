@@ -111,8 +111,10 @@ class TuningApi(private val exchange:(String,String,JSONObject?)->JSONObject) {
                 val code=c.responseCode
                 if(code==404)error("이 오파는 튜닝 프로필 API를 지원하지 않습니다. 오파 업데이트 후 다시 확인하세요.")
                 val stream=if(code in 200..299)c.inputStream else c.errorStream
-                val r=JSONObject(stream?.use {it.readBytesLimited(131072)}?.toString(Charsets.UTF_8) ?: "{}")
-                require(code in 200..299 && r.optBoolean("ok")) { r.optString("error","오파 응답 확인 실패($code)") };r
+                val raw=stream?.use {it.readBytesLimited(131072)}?.toString(Charsets.UTF_8) ?: "{}"
+                val r=try{JSONObject(raw)}catch(_:Exception){JSONObject()}
+                if(code !in 200..299)throw TuningHttpError(code,r.optString("error","오파 요청 거절($code) · P·속도0·제어 해제를 확인하세요."))
+                require(r.optBoolean("ok")){r.optString("error","오파 응답 확인 실패($code)")};r
             } finally {c.disconnect()}
         }
     }

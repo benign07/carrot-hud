@@ -78,4 +78,25 @@ class TuningQuickApplyTest {
     @Test fun gateIsSharedAndDoesNotQueue(){
         assertTrue(TuningOperationGate.enter());try{assertFalse(TuningOperationGate.enter());assertTrue(TuningOperationGate.isBusy())}finally{TuningOperationGate.leave()};assertTrue(TuningOperationGate.enter());TuningOperationGate.leave()
     }
+    @Test fun lostUnchangedResponseCanBeResolvedReadOnlyWithoutClaimingReceipt(){
+        val s=Session(error=IOException("lost unchanged"),after={state()});val result=run(s)
+        assertEquals(QuickPhase.UNKNOWN,result.phase)
+        val resolution=TuningQuickApply.pendingResolution(p(),id,"device-A",state())
+        assertTrue(resolution.first);assertTrue(resolution.second.contains("영수증"));assertEquals(1,s.posts)
+    }
+    @Test fun pendingWithDifferentValuesOrUnfinishedServerCannotBeCleared(){
+        for(s in listOf(state(match=false),state().put("in_progress",true),state().put("recovery_required",true),state(serial="other")))
+            assertFalse(TuningQuickApply.pendingResolution(p(),id,"device-A",s).first)
+    }
+    @Test fun fullEditorApprovedPreviewUsesSameRejectionAndNoFreshSilentPreview(){
+        val s=Session(error=TuningHttpError(409,"P required"),after={state()});s.initial=state(match=false).put("revision","a".repeat(64))
+        val result=TuningQuickApply(s.api(),{},{_,_,_->s.persisted=true}).apply(p(),id,preview())
+        assertEquals(QuickPhase.REJECTED,result.phase);assertTrue(result.clearPending);assertEquals(1,s.posts)
+    }
+    @Test fun staleFullEditorConfirmationDoesNotSend(){
+        val s=Session(after={state()});s.initial=state().put("revision","d".repeat(64))
+        val result=TuningQuickApply(s.api(),{},{_,_,_->s.persisted=true}).apply(p(),id,preview())
+        assertEquals(QuickPhase.REJECTED,result.phase);assertEquals(0,s.posts)
+    }
+
 }

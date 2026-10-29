@@ -46,10 +46,10 @@ class TuningQuickActivity:AppCompatActivity() {
         val bound=resolved.copy(dongle=saved.dongle,identityNeedsCheck=saved.identityNeedsCheck)
         checkTarget(bound);return bound
     }
-    private fun checkTarget(d:Device){
+    private fun checkTarget(d:Device,network:Boolean=true){
         val active=DeviceStore.getActive(this)
         require(active!=null&&active.id==d.id&&active.ip==d.ip&&active.port==d.port&&active.dongle==d.dongle&&!active.identityNeedsCheck){"대상 기기·주소가 바뀌었습니다."}
-        require(OpPairingBinding.known(d.dongle)&&Net.fetchDongle(d.ip,d.port,1200)==d.dongle){"기기 식별 확인 실패 · 앱에서 연결을 확인하세요."}
+        require(OpPairingBinding.known(d.dongle)&&(!network||Net.fetchDongle(d.ip,d.port,1200)==d.dongle)){"기기 식별 확인 실패 · 앱에서 연결을 확인하세요."}
     }
     private fun startWork(apply:Boolean,profile:JSONObject?){
         if(!busy.compareAndSet(false,true))return
@@ -65,23 +65,27 @@ class TuningQuickActivity:AppCompatActivity() {
                 val prior=pending.getString("request_id",null)
                 if(prior!=null){
                     val state=api.state();checkTarget(target)
-                    val r=state.optJSONObject("receipt")
-                    if(r?.optString("request_id")==prior&&r.optString("phase") in listOf("complete","rolled_back")&&!state.optBoolean("recovery_required")&&!state.optBoolean("in_progress")&&(pending.getString("serial",null)==null||pending.getString("serial",null)==state.getJSONObject("context").getString("serial"))){
-                        require(pending.edit().clear().commit());TuningProfileHealth.observe(c,target,state)
-                    }else error("이전 요청 완료 미확인 · 전체 튜닝 메뉴에서 먼저 확인하세요. 자동 재적용 없음")
+                    val raw=pending.getString("profile_json",null)
+                    val stored=try{raw?.let{TuningProfiles.parse(it)}}catch(_:Exception){null}
+                    val resolution=TuningQuickApply.pendingResolution(stored,prior,pending.getString("serial",null),state)
+                    require(resolution.first){resolution.second+" · 자동 재적용 없음"}
+                    require(pending.edit().clear().commit());TuningProfileHealth.observe(c,target,state)
+                    TuningWidgetStatus.set(c,target,stored?.optString("name") ?: "프로필",resolution.second)
+
                 }
                 if(!apply){
                     val s=api.state();checkTarget(target);TuningProfileHealth.observe(c,target,s)
                     show("현재 저장 상태 확인 · "+TuningWidgetStatus.text(c));return@Thread
                 }
                 val selected=TuningProfiles.parse(profile!!.toString());val name=selected.getString("name")
-                TuningWidgetStatus.set(c,target,name,"적용 요청 중 · 완료 확인 전")
+                TuningWidgetStatus.set(c,target,name,"요청 준비 중 · 전송 전")
                 val id=UUID.randomUUID().toString().replace("-","")
                 val result=TuningQuickApply(api,{checkTarget(target)},{request,p,serial ->
                     require(pending.edit().putString("request_id",request).putString("device_id",target.id).putString("profile_json",p.toString()).putString("serial",serial).commit()){"요청 기록 저장 실패"}
-                }).apply(selected,id)
+                    TuningWidgetStatus.set(c,target,name,"적용 요청 중 · 완료 확인 전")
+                },{checkTarget(target,false)}).apply(selected,id)
                 result.state?.let{TuningProfileHealth.observe(c,target,it)}
-                if(result.clearPending)require(pending.edit().clear().commit())
+                if(result.clearPending&&pending.getString("request_id",null)==id)require(pending.edit().clear().commit())
                 TuningWidgetStatus.set(c,target,name,result.message)
                 show("$name\n${result.message}")
             }catch(e:Exception){

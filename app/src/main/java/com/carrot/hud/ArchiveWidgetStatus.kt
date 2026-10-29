@@ -18,9 +18,10 @@ object ArchiveWidgetStatus {
         val badge = OpUpdateMonitor.badge(context)
         val diagnostic = DiagnosticWidgetStatus.text(context)+TuningProfileHealth.text(context)
         val profile=TuningWidgetStatus.text(context)
+        val target=DeviceStore.getActive(context)?.id.orEmpty()
         val prefs = context.getSharedPreferences("archive_widget", Context.MODE_PRIVATE)
-        if (prefs.getString("text", "") == text && prefs.getString("badge", "") == badge && prefs.getString("diagnostic", "") == diagnostic && prefs.getString("profile","")==profile) return
-        prefs.edit().putString("text", text).putString("badge", badge).putString("diagnostic", diagnostic).putString("profile",profile).putLong("at", System.currentTimeMillis()).apply()
+        if (prefs.getString("text", "") == text && prefs.getString("badge", "") == badge && prefs.getString("diagnostic", "") == diagnostic && prefs.getString("profile","")==profile && prefs.getString("target","")==target) return
+        prefs.edit().putString("text", text).putString("badge", badge).putString("diagnostic", diagnostic).putString("profile",profile).putString("target",target).putLong("at", System.currentTimeMillis()).apply()
         val mgr = AppWidgetManager.getInstance(context)
         for ((provider, layout, field) in listOf(
             Triple(HudWidgetProvider::class.java, R.layout.widget_hud, R.id.wTransfer),

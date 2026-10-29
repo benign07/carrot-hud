@@ -28,4 +28,16 @@ class TuningQuickUiTest {
         val activity=Robolectric.buildActivity(TuningQuickActivity::class.java,Intent(c,TuningQuickActivity::class.java).putExtra("device_id",d.id)).setup()
         assertFalse(TuningOperationGate.isBusy());assertFalse(TuningWidgetStatus.pending(c,d.id).contains("request_id"));activity.pause().stop().destroy()
     }
+    @Test fun incompatibleUserProfileDoesNotHideBuiltinsOrGetDeleted(){
+        val c=RuntimeEnvironment.getApplication();val dir=java.io.File(c.filesDir,"tuning-profiles-v1");dir.mkdirs()
+        val file=java.io.File(dir,"future.json");file.writeText("{broken}")
+        val catalog=TuningProfileStore.load(c);assertEquals(5,catalog.profiles.size);assertTrue(catalog.problems.isNotEmpty());assertEquals("{broken}",file.readText())
+    }
+    @Test fun activeDeviceChangeUpdatesWidgetTargetEvenWithEqualStatusText(){
+        val c=RuntimeEnvironment.getApplication();val a=DeviceStore.addDevice(c,"A","192.168.0.1");ArchiveWidgetStatus.publish(c)
+        org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofSeconds(1))
+        val b=DeviceStore.addDevice(c,"B","192.168.0.2");assertNotEquals(a.id,b.id);ArchiveWidgetStatus.publish(c)
+        assertEquals(b.id,c.getSharedPreferences("archive_widget",0).getString("target",null))
+    }
+
 }

@@ -66,6 +66,7 @@ class TuningProfilesActivity:AppCompatActivity() {
         button("직전 프로필 적용 전 값 확인·복원") {val s=state?.optJSONObject("receipt");if(s?.optString("phase")!="complete")status.text="완료된 적용 기록이 없습니다." else showPreview(TuningProfiles.fromValues("직전 프로필 적용 전",s.getJSONObject("before")))}
         recoverButton=button("미완료 프로필 적용 복구") {confirmRecovery()}.apply {isEnabled=false}
         archiveButton=button("복구 기록 문제 · 원본 보존 후 다시 확인") {confirmArchive()}.apply {isEnabled=false}
+        button("미확인 로컬 요청 표시 정리 · 차량 설정 변경 없음") {confirmPendingArchive()}
         text("복원은 직전1건입니다. 기록 보존은 Params 복원이 아니며, 현재 설정을 유지한 채 이전 결과를 미확인으로 남깁니다.",14f)
         details=text("프로필 선택 후 변경값을 확인하세요.",14f)
         setContentView(ScrollView(this).apply {addView(box)})
@@ -141,16 +142,41 @@ class TuningProfilesActivity:AppCompatActivity() {
         runOnUiThread {AlertDialog.Builder(this).setTitle("기록 원본 보존 · 설정값 유지").setMessage("기기 $serial\n이전 적용 결과는 확인할 수 없습니다. Params를 바꾸지 않고 오류 기록만 별도 파일로 보존합니다.\n$current\n보존 후 반드시 새 미리보기로 현재 설정을 확인하세요.")
             .setNegativeButton("취소",null).setPositiveButton("현재 값 유지·기록 보존") {_,_->runDevice(mutation=true) {api2,target ->require(target.id==d.id);api2.archive(hash,serial);TuningProfileHealth.observe(applicationContext,target,api2.receipt());pending().edit().clear().commit();loadState(api2.state())}}.show()}
     }
+    private fun confirmPendingArchive(){
+        val d=DeviceStore.getActive(this) ?: return
+        val store=TuningWidgetStatus.pending(this,d.id);val id=store.getString("request_id",null)
+        if(id==null){status.text="정리할 로컬 요청이 없습니다.";return}
+        AlertDialog.Builder(this).setTitle("미확인 요청 원본 보존")
+            .setMessage("기기 ${d.name}\n차량 설정을 변경하지 않고 원본을 휴대폰에 보존한 뒤 로컬 대기 표시만 해제합니다. 이미 보낸 요청을 취소하거나 적용 결과를 확인하는 작업은 아닙니다. 이전 요청이 늦게 처리될 수 있으며 서버의 P·설정 버전 검사가 유지됩니다. 서버 복구가 필요한 상태에서는 정리하지 않습니다.")
+            .setNegativeButton("취소",null).setPositiveButton("원본 보존·표시만 정리"){_,_->runDevice(mutation=true){api,current ->
+                require(current.id==d.id&&store.getString("request_id",null)==id){"대상·요청이 바뀌었습니다."}
+                val s=api.state();require(!s.optBoolean("in_progress")&&!s.optBoolean("recovery_required")){"서버 적용·복구를 먼저 확인하세요."}
+                val serial=store.getString("serial",null);require(serial==null||serial==s.getJSONObject("context").getString("serial")){"기기 식별 불일치"}
+                val dir=File(filesDir,"tuning-pending-archive-v1");require(dir.isDirectory||dir.mkdirs())
+                val file=File(dir,UUID.randomUUID().toString()+".json")
+                java.io.FileOutputStream(file).use{it.write(JSONObject(store.all).toString(2).toByteArray(Charsets.UTF_8));it.fd.sync()}
+                require(store.edit().clear().commit());loadState(s)
+                TuningWidgetStatus.set(applicationContext,current,"이전 요청","원본 보존·로컬 표시 정리 · 결과 미확인")
+                runOnUiThread{status.text="로컬 원본 보존 완료 · 차량 설정·서버 기록은 변경하지 않았습니다."}
+            }}.show()
+    }
     private fun confirmApply() {
         val p=previewProfile ?: return;val v=preview ?: return;val d=previewDevice ?: return
         AlertDialog.Builder(this).setTitle("${p.getString("name")} 적용").setMessage("P·속도0·제어 해제 상태에서 표시된 종방향 설정을 변경합니다. 저장 확인과 실제 주행 효과는 별개입니다.")
             .setNegativeButton("취소",null).setPositiveButton("적용") {_,_ ->runDevice(mutation=true) {api,current ->
                 require(current.id==d.id) {"대상 기기가 바뀌었습니다. 다시 미리보기하세요."}
                 val id=UUID.randomUUID().toString().replace("-","")
-                require(pending().edit().putString("request_id",id).putString("device_id",d.id).commit())
-                try {val result=api.apply(p,v,id);if(result.optString("phase")=="unchanged")pending().edit().clear().commit()}finally {try{loadState(api.state())}catch(_:Exception){}}
-                val s=api.state();require(TuningProfiles.matches(p,s)) {"저장값 불일치 · 자동 재적용 없음"}
-                runOnUiThread {preview=null;previewProfile=null;applyButton.isEnabled=false;status.text="요청한 설정의 저장값 일치 확인 · 실제 주행 효과는 진단에서 확인합니다."}
+                val pendingStore=TuningWidgetStatus.pending(applicationContext,current.id)
+                val result=TuningQuickApply(api,{
+                    require(DeviceStore.getActive(this)?.id==current.id){"대상 기기가 바뀌었습니다."}
+                },{request,profile,serial ->
+                    require(pendingStore.edit().putString("request_id",request).putString("device_id",current.id).putString("profile_json",profile.toString()).putString("serial",serial).commit())
+                }).apply(p,id,v)
+                result.state?.let{loadState(it)}
+                if(result.clearPending&&pendingStore.getString("request_id",null)==id)require(pendingStore.edit().clear().commit())
+                TuningWidgetStatus.set(applicationContext,current,p.getString("name"),result.message)
+                runOnUiThread {preview=null;previewProfile=null;applyButton.isEnabled=false;status.text=p.getString("name")+"\n"+result.message}
+
             }}.show()
     }
 }

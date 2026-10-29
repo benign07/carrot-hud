@@ -68,7 +68,11 @@ class TuningQuickActivity:AppCompatActivity() {
                     val raw=pending.getString("profile_json",null)
                     val stored=try{raw?.let{TuningProfiles.parse(it)}}catch(_:Exception){null}
                     val resolution=TuningQuickApply.pendingResolution(stored,prior,pending.getString("serial",null),state)
-                    require(resolution.first){resolution.second+" · 자동 재적용 없음"}
+                    if(!resolution.first){
+                        TuningProfileHealth.observe(c,target,state)
+                        if(!apply){show(resolution.second+"\n현재 저장 상태를 읽었습니다. 새 쓰기·재적용은 하지 않았습니다.");return@Thread}
+                        error(resolution.second+" · 자동 재적용 없음")
+                    }
                     require(pending.edit().clear().commit());TuningProfileHealth.observe(c,target,state)
                     TuningWidgetStatus.set(c,target,stored?.optString("name") ?: "프로필",resolution.second)
 
@@ -81,12 +85,14 @@ class TuningQuickActivity:AppCompatActivity() {
                 TuningWidgetStatus.set(c,target,name,"요청 준비 중 · 전송 전")
                 val id=UUID.randomUUID().toString().replace("-","")
                 val result=TuningQuickApply(api,{checkTarget(target)},{request,p,serial ->
+                    TuningWidgetStatus.preservePending(c,target.id)
                     require(pending.edit().putString("request_id",request).putString("device_id",target.id).putString("profile_json",p.toString()).putString("serial",serial).commit()){"요청 기록 저장 실패"}
                     TuningWidgetStatus.set(c,target,name,"적용 요청 중 · 완료 확인 전")
                 },{checkTarget(target,false)}).apply(selected,id)
                 result.state?.let{TuningProfileHealth.observe(c,target,it)}
                 if(result.clearPending&&pending.getString("request_id",null)==id)require(pending.edit().clear().commit())
                 TuningWidgetStatus.set(c,target,name,result.message)
+                TuningWidgetStatus.refreshReadOnly(c)
                 show("$name\n${result.message}")
             }catch(e:Exception){
                 d?.let{TuningWidgetStatus.set(c,it,profile?.optString("name") ?: "프로필","처리 확인 필요 · ${e.message}")}

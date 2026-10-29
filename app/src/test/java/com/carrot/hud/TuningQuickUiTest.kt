@@ -40,4 +40,13 @@ class TuningQuickUiTest {
         assertEquals(b.id,c.getSharedPreferences("archive_widget",0).getString("target",null))
     }
 
+    @Test fun newerRequestCanPreservePriorEvidenceWithoutErasingOrWritingVehicleState(){
+        val c=RuntimeEnvironment.getApplication();val store=TuningWidgetStatus.pending(c,"device")
+        store.edit().putString("request_id","original").putString("profile_json","{original}").commit()
+        TuningWidgetStatus.preservePending(c,"device")
+        assertEquals("original",store.getString("request_id",null))
+        val files=java.io.File(c.filesDir,"tuning-pending-archive-v1").listFiles()!!;assertEquals(1,files.size)
+        val row=org.json.JSONObject(files.single().readText());assertEquals("original",row.getJSONObject("pending").getString("request_id"))
+    }
+
 }

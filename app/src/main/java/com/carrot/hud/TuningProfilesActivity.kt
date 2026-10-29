@@ -152,9 +152,7 @@ class TuningProfilesActivity:AppCompatActivity() {
                 require(current.id==d.id&&store.getString("request_id",null)==id){"대상·요청이 바뀌었습니다."}
                 val s=api.state();require(!s.optBoolean("in_progress")&&!s.optBoolean("recovery_required")){"서버 적용·복구를 먼저 확인하세요."}
                 val serial=store.getString("serial",null);require(serial==null||serial==s.getJSONObject("context").getString("serial")){"기기 식별 불일치"}
-                val dir=File(filesDir,"tuning-pending-archive-v1");require(dir.isDirectory||dir.mkdirs())
-                val file=File(dir,UUID.randomUUID().toString()+".json")
-                java.io.FileOutputStream(file).use{it.write(JSONObject(store.all).toString(2).toByteArray(Charsets.UTF_8));it.fd.sync()}
+                TuningWidgetStatus.preservePending(applicationContext,current.id)
                 require(store.edit().clear().commit());loadState(s)
                 TuningWidgetStatus.set(applicationContext,current,"이전 요청","원본 보존·로컬 표시 정리 · 결과 미확인")
                 runOnUiThread{status.text="로컬 원본 보존 완료 · 차량 설정·서버 기록은 변경하지 않았습니다."}
@@ -170,11 +168,13 @@ class TuningProfilesActivity:AppCompatActivity() {
                 val result=TuningQuickApply(api,{
                     require(DeviceStore.getActive(this)?.id==current.id){"대상 기기가 바뀌었습니다."}
                 },{request,profile,serial ->
+                    TuningWidgetStatus.preservePending(applicationContext,current.id)
                     require(pendingStore.edit().putString("request_id",request).putString("device_id",current.id).putString("profile_json",profile.toString()).putString("serial",serial).commit())
                 }).apply(p,id,v)
                 result.state?.let{loadState(it)}
                 if(result.clearPending&&pendingStore.getString("request_id",null)==id)require(pendingStore.edit().clear().commit())
                 TuningWidgetStatus.set(applicationContext,current,p.getString("name"),result.message)
+                TuningWidgetStatus.refreshReadOnly(applicationContext)
                 runOnUiThread {preview=null;previewProfile=null;applyButton.isEnabled=false;status.text=p.getString("name")+"\n"+result.message}
 
             }}.show()

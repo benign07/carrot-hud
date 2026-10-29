@@ -53,6 +53,8 @@ object OpUpdateApi {
         } finally { connection.disconnect() }
     }
     fun status(endpoint: OpEndpoint): JSONObject = request(endpoint, null)
+    fun automaticBody(enabled: Boolean): JSONObject = JSONObject().put("action", "automatic").put("enabled", enabled)
+    fun automatic(endpoint: OpEndpoint, enabled: Boolean): JSONObject = request(endpoint, automaticBody(enabled))
     fun action(endpoint: OpEndpoint, action: String, latest: JSONObject? = null): JSONObject {
         require(action in setOf("check", "queue", "cancel", "rollback"))
         val body = JSONObject().put("action", action)

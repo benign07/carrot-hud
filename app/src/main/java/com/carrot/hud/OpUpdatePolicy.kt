@@ -20,6 +20,17 @@ class OpUpdateSchedule {
 
 object OpUpdatePolicy {
     val activePhases = setOf("waiting_parked", "downloading", "countdown", "armed", "applying", "verifying", "rolling_back")
+    fun manualRequest(state: JSONObject): JSONObject? {
+        available(state)?.let { return it }
+        if (!state.optBoolean("automatic_request") || state.optString("phase") != "waiting_parked") return null
+        val latest = available(JSONObject(state.toString()).put("phase", "idle")) ?: return null
+        return latest.takeIf { it.optString("release_id") == state.optString("requested_release") &&
+            it.optString("bundle_sha256") == state.optString("requested_bundle_sha256") }
+    }
+    fun preparation(state: JSONObject): String {
+        val auto = state.optJSONObject("automatic") ?: return ""
+        return if (auto.optBoolean("supported")) auto.optString("message") else ""
+    }
     fun rollback(state: JSONObject): JSONObject? {
         if (!state.optBoolean("ok") || !state.optBoolean("configured") || state.optString("phase") in activePhases) return null
         val installed = state.optJSONObject("installed") ?: return null

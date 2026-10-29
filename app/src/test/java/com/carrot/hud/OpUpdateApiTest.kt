@@ -50,4 +50,19 @@ class OpUpdateApiTest {
         try { OpUpdateApi.read(reply); fail() } catch (_: Exception) { }
         assertTrue(reply.disconnected)
     }
+    @Test fun automaticChoiceIsExplicitBooleanAndCannotQueueAnInstallByItself() {
+        for (enabled in listOf(false,true)) {
+            val body=OpUpdateApi.automaticBody(enabled)
+            assertEquals("automatic",body.getString("action"))
+            assertEquals(enabled,body.getBoolean("enabled"))
+            assertFalse(body.has("release_id"));assertFalse(body.has("bundle_sha256"))
+        }
+    }
+    @Test fun manualTakeoverOnlyOffersTheStillPinnedAutomaticReservation() {
+        val state=JSONObject("""{"ok":true,"configured":true,"phase":"waiting_parked","automatic_request":true,"installed":{"sequence":20},"latest":{"sequence":21,"release_id":"test-21","bundle_sha256":"${"a".repeat(64)}"},"requested_release":"test-21","requested_bundle_sha256":"${"a".repeat(64)}"}""")
+        assertNull(OpUpdatePolicy.available(state));assertNotNull(OpUpdatePolicy.manualRequest(state))
+        state.getJSONObject("latest").put("bundle_sha256","b".repeat(64))
+        assertNull(OpUpdatePolicy.manualRequest(state))
+        state.put("automatic_request",false);assertNull(OpUpdatePolicy.manualRequest(state))
+    }
 }

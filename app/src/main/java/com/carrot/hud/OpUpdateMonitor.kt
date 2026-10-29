@@ -51,6 +51,7 @@ object OpUpdateMonitor {
         val latest = OpUpdatePolicy.available(state)
         val p = prefs(context)
         p.edit().putString("url", ep.url).putString("release", latest?.optString("release_id") ?: "")
+            .putString("preparation", OpUpdatePolicy.preparation(state))
             .putLong("checked_at", System.currentTimeMillis()).apply()
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel(CHANNEL, "오파 새 업데이트", NotificationManager.IMPORTANCE_DEFAULT))
@@ -79,7 +80,7 @@ object OpUpdateMonitor {
         val p = prefs(context)
         if (p.getString("url", "") != ep.url) return ""
         val release = p.getString("release", "") ?: ""
-        return if (release.isBlank()) "" else "오파 새 업데이트 · 눌러서 확인"
+        return if (release.isBlank()) p.getString("preparation", "") ?: "" else "오파 새 업데이트 · 눌러서 확인"
     }
     fun openIntent(context: Context): PendingIntent = PendingIntent.getActivity(context, NOTIFICATION,
         Intent(context, OpUpdateActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)

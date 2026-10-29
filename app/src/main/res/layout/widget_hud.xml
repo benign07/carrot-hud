@@ -25,6 +25,8 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
+    <TextView android:id="@+id/wProfile" android:layout_width="92dp" android:layout_height="wrap_content" android:minHeight="30dp" android:gravity="center_vertical" android:maxLines="2" android:ellipsize="end" android:text="프로필 선택 ▾ · 저장 상태 확인 전" android:textColor="#BFE9FF" android:textSize="11sp" android:background="#193744" android:padding="4dp"/>
+
         <ImageButton
             android:id="@+id/wRefresh"
             android:layout_width="30dp"
@@ -87,7 +89,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <TextView android:id="@+id/wProfile" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="30dp" android:gravity="center_vertical" android:maxLines="2" android:ellipsize="end" android:text="프로필 선택 ▾ · 저장 상태 확인 전" android:textColor="#BFE9FF" android:textSize="11sp" android:background="#193744" android:padding="4dp"/>
+
     <TextView
         android:id="@+id/wStatus"
         android:layout_width="wrap_content"

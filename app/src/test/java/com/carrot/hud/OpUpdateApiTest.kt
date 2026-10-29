@@ -65,4 +65,9 @@ class OpUpdateApiTest {
         assertNull(OpUpdatePolicy.manualRequest(state))
         state.put("automatic_request",false);assertNull(OpUpdatePolicy.manualRequest(state))
     }
+    @Test fun automaticPreparationPollsFrequentlyWithoutFrequentGithubChecks() {
+        val schedule=OpUpdateSchedule();schedule.success(1000,true,true)
+        assertFalse(schedule.due(5999));assertTrue(schedule.due(6000))
+        assertFalse(schedule.checkDue(6000));assertTrue(schedule.checkDue(901000))
+    }
 }

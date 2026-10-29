@@ -20,6 +20,8 @@ class OpUpdateActivity : AppCompatActivity() {
     private lateinit var automatic: Switch
     private lateinit var prefetch: TextView
     private var renderingAutomatic = false
+    private var confirmedAutomatic: Boolean? = null
+    private var confirmedAutomaticDevice: String? = null
     private val busy = AtomicBoolean(false)
     private val handler = Handler(Looper.getMainLooper())
     private var visible = false
@@ -65,7 +67,7 @@ class OpUpdateActivity : AppCompatActivity() {
             setOnCheckedChangeListener { _, value -> if (!renderingAutomatic) command("automatic", value) }
         }; box.addView(automatic)
         prefetch = text("기기 업데이트기의 자동 준비 지원 여부 확인 중", 14f)
-        text("자동 준비된 버전은 이번 오파 부팅에서 주행한 뒤 P·속도0·제어 해제를 10초 확인하고, 취소할 수 있는 10초 안내 뒤 재부팅합니다. 시동 직후 P 대기만으로 자동 재부팅하지 않습니다. 출발 전 설치하려면 아래 설치 버튼을 직접 누르세요. 준비가 끝났다면 네트워크 다운로드를 다시 기다리지 않습니다.", 14f)
+        text("자동 준비된 버전은 이번 차량 시동에서 주행한 뒤 P·속도0·제어 해제를 10초 확인하고, 취소할 수 있는 10초 안내 뒤 재부팅합니다. 시동 직후 P 대기만으로 자동 재부팅하지 않습니다. 출발 전 설치하려면 아래 설치 버튼을 직접 누르세요. 준비가 끝났다면 네트워크 다운로드를 다시 기다리지 않습니다.", 14f)
         queue = button("오파에 설치·재부팅 · 주행 중이면 정차 후 적용") { command("queue") }
         cancel = button("업데이트 예약 취소") { command("cancel") }
         rollback = button("이전 설치본으로 되돌리기") { command("rollback") }
@@ -97,10 +99,15 @@ class OpUpdateActivity : AppCompatActivity() {
         val active = phase in setOf("waiting_parked", "downloading", "countdown", "armed", "applying", "verifying", "rolling_back")
         val auto = state?.optJSONObject("automatic")
         renderingAutomatic = true
-        automatic.isChecked = auto?.optBoolean("enabled", false) == true
+        if (confirmedAutomaticDevice != DeviceStore.getActiveId(this)) {
+            confirmedAutomatic = null; confirmedAutomaticDevice = DeviceStore.getActiveId(this)
+        }
+        if (matched && auto?.optBoolean("supported", false) == true) confirmedAutomatic = auto.optBoolean("enabled", false)
+        automatic.isChecked = confirmedAutomatic == true
         renderingAutomatic = false
         automatic.isEnabled = matched && !busy.get() && auto?.optBoolean("supported", false) == true
-        prefetch.text = if (auto?.optBoolean("supported", false) == true) state?.let { OpUpdatePolicy.preparation(it) }.orEmpty()
+        prefetch.text = if (!matched) "자동 설정 반영 여부 미확인 · 연결 후 상태를 다시 확인합니다."
+            else if (auto?.optBoolean("supported", false) == true) state?.let { OpUpdatePolicy.preparation(it) }.orEmpty()
             else "최초 업데이트기 갱신 필요 · 기존 수동 설치는 사용할 수 있습니다."
         val automaticPending = state?.optBoolean("automatic_request", false) == true && phase == "waiting_parked"
         queue.isEnabled = matched && !busy.get() && (!active || automaticPending) && state?.let { OpUpdatePolicy.manualRequest(it) } != null

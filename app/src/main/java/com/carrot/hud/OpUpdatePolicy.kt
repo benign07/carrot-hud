@@ -10,9 +10,9 @@ class OpUpdateSchedule {
     fun disconnected() { if (connected) { connected = false; nextCheck = 0L } }
     fun due(now: Long): Boolean = now >= nextStatus
     fun checkDue(now: Long): Boolean = now >= nextCheck
-    fun success(now: Long, checked: Boolean) {
+    fun success(now: Long, checked: Boolean, preparing: Boolean = false) {
         connected = true
-        nextStatus = now + 60_000
+        nextStatus = now + if (preparing) 5_000 else 60_000
         if (checked) nextCheck = now + 15 * 60_000
     }
     fun failed(now: Long) { disconnected(); nextStatus = now + 60_000 }

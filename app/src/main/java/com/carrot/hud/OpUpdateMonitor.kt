@@ -38,7 +38,8 @@ object OpUpdateMonitor {
                     state.optString("phase") !in OpUpdatePolicy.activePhases
                 if (check) state = OpUpdateApi.action(ep, "check")
                 if (endpoint(app)?.url == ep.url) observe(app, ep, state)
-                synchronized(this) { current.success(SystemClock.elapsedRealtime(), check) }
+                synchronized(this) { current.success(SystemClock.elapsedRealtime(), check,
+                    state.optJSONObject("automatic")?.optBoolean("enabled") == true || state.optString("phase") in OpUpdatePolicy.activePhases) }
             } catch (_: Exception) {
                 synchronized(this) { current.failed(SystemClock.elapsedRealtime()) }
             } finally { busy.set(false) }
@@ -55,6 +56,15 @@ object OpUpdateMonitor {
             .putLong("checked_at", System.currentTimeMillis()).apply()
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel(CHANNEL, "오파 새 업데이트", NotificationManager.IMPORTANCE_DEFAULT))
+        if (state.optString("phase") == "countdown" && state.optBoolean("automatic_request")) {
+            try {
+                manager.notify(NOTIFICATION+1, Notification.Builder(context,CHANNEL)
+                    .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                    .setContentTitle("오파 업데이트 재부팅 예정")
+                    .setContentText("주차 확인·파일 준비 완료 · 눌러서 설치 예약 취소")
+                    .setContentIntent(openIntent(context)).setOnlyAlertOnce(true).setOngoing(true).build())
+            } catch (_: SecurityException) { /* Existing widget remains the fallback. */ }
+        } else manager.cancel(NOTIFICATION+1)
         if (latest == null) manager.cancel(NOTIFICATION)
         else {
             val key = OpUpdatePolicy.identity(ep.url, latest)

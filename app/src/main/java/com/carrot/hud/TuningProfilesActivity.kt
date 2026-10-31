@@ -16,6 +16,8 @@ class TuningProfilesActivity:AppCompatActivity() {
     private var requestedProfileSelected=false
     private lateinit var status:TextView
     private lateinit var details:TextView
+    private lateinit var storedStatus:TextView
+    private lateinit var candidateSummary:TextView
     private lateinit var selector:Spinner
     private lateinit var applyButton:Button
     private lateinit var recoverButton:Button
@@ -53,10 +55,14 @@ class TuningProfilesActivity:AppCompatActivity() {
         fun button(s:String,action:()->Unit)=Button(this).also {it.text=s;it.setOnClickListener {action()};box.addView(it)}
         text("튜닝 프로필",24f)
         status=text("오파 연결·프로필 규격 확인 전")
+        storedStatus=text("현재 저장 상태: 확인 전",16f)
+        text(TuningProfilePresentation.modeExplanation,14f)
+        text("아래 목록은 적용할 후보입니다. 선택만으로 저장되지 않습니다.",14f)
         text("다섯 통합 조합은 접근 감속·부드러운 정지·조건부 간격 유연화·출발 후 추종을 공통 사용하고 강도·시간거리·가속 상한을 다르게 조합합니다. 개선 보장이 아니며 P·속도0·제어 해제 후 변경합니다. 조향·DM·카메라는 보존합니다.",14f)
         selector=Spinner(this);box.addView(selector)
+        candidateSummary=text("선택 후보 설명",14f)
         selector.onItemSelectedListener=object:android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p:android.widget.AdapterView<*>?,v:android.view.View?,position:Int,id:Long){preview=null;previewProfile=null;applyButton.isEnabled=false;details.text=profiles.getOrNull(position)?.optString("description","") ?: ""}
+            override fun onItemSelected(p:android.widget.AdapterView<*>?,v:android.view.View?,position:Int,id:Long){preview=null;previewProfile=null;applyButton.isEnabled=false;val p=profiles.getOrNull(position);candidateSummary.text=p?.let {TuningProfilePresentation.intent(it)} ?: "";details.text=p?.optString("description","") ?: ""}
             override fun onNothingSelected(p:android.widget.AdapterView<*>?){}
         }
         button("연결·업데이트 후 호환성 확인") {refresh()}
@@ -77,7 +83,7 @@ class TuningProfilesActivity:AppCompatActivity() {
     private fun selected()=profiles.getOrNull(selector.selectedItemPosition)
     private fun loadProfiles() {
         val catalog=TuningProfileStore.load(this);profiles=catalog.profiles
-        selector.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,profiles.map{it.getString("name")})
+        selector.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,profiles.map{"선택 후보 · "+it.getString("name")})
         if(!requestedProfileSelected){requestedProfileSelected=true;val id=intent.getStringExtra(EXTRA_PROFILE_ID);val index=profiles.indexOfFirst {it.optString("id")==id};if(index>=0)selector.setSelection(index)}
         if(catalog.problems.isNotEmpty())status.text=catalog.problems.joinToString("\n")
     }
@@ -110,6 +116,7 @@ class TuningProfilesActivity:AppCompatActivity() {
       TuningProfileHealth.observe(applicationContext,target,s)
       runOnUiThread {
         if(DeviceStore.getActive(this)?.id!=target.id)return@runOnUiThread
+        storedStatus.text="현재 저장 상태: "+(TuningProfilePresentation.stored(s) ?: "확인 전")
         state=s;recoverButton.isEnabled=s.optBoolean("recovery_required") && s.optJSONObject("receipt")?.optString("phase") in listOf("applying","recovery_required")
         archiveButton.isEnabled=s.optBoolean("recovery_required") && s.optString("journal_sha256").matches(Regex("[a-f0-9]{64}"))
         val p=pending();val id=p.getString("request_id",null);val r=s.optJSONObject("receipt")
@@ -124,6 +131,7 @@ class TuningProfilesActivity:AppCompatActivity() {
     private fun showPreview(p:JSONObject)=runDevice {api,d ->
         val s=api.state();TuningProfiles.validateFor(p,s);require(!s.optBoolean("recovery_required")) {"이전 적용 복구 필요"}
         val v=api.preview(p);runOnUiThread {
+            storedStatus.text="현재 저장 상태: "+(TuningProfilePresentation.stored(s) ?: "확인 전")
             state=s;preview=v;previewProfile=p;previewDevice=d;applyButton.isEnabled=true
             val changes=v.getJSONArray("changes")
             details.text=p.getString("name")+"\n"+p.optString("description","")+"\n"+v.optString("note","")+"\n\n"+(0 until changes.length()).joinToString("\n") {i ->val c=changes.getJSONObject(i);"${c.getString("key")}: ${c.get("before")} → ${c.get("after")}"}

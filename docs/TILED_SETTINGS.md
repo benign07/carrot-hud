@@ -37,3 +37,17 @@ Opening, refreshing, rotating, or updating the app never applies a profile or
 changes driving settings. The Android app update is independent of the OP
 firmware update. No new firmware, Panda, CAN, monitoring, archive, or overlay
 processing is introduced by this screen.
+
+
+## Profile selection and storage evidence
+The editor labels its spinner as a candidate, separate from the current stored status.
+Its default first item is never evidence that profile 01 was applied. The quick chooser
+and tile cards share the same complete combination-intent paragraph; the full editor
+also shows that paragraph beside the candidate and keeps the full description below.
+The independent driving-mode widget is explicitly labelled as separate from presets.
+
+The existing 60-second profile-health refresh reads the full current state to detect
+individual changes. If saved values cannot be read, it falls back to the receipt endpoint
+so recovery warnings remain available. Receipt-only or malformed responses cannot erase
+cached full-state storage evidence. No preset values, write transactions, parked gates,
+profile schema or automatic application behavior change.

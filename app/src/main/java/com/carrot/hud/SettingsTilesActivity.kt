@@ -119,7 +119,7 @@ class SettingsTilesActivity:AppCompatActivity() {
         grid(box,loaded.profiles.map {p->column().apply {
             background=shape(Color.rgb(28,43,33));setPadding(dp(16),dp(12),dp(16),dp(12))
             addView(label(p.getString("name"),18f))
-            val description=p.optString("description");addView(label(description.split("\n\n").getOrElse(1){description},13f))
+            addView(label(TuningProfilePresentation.intent(p),13f))
             val v=p.getJSONObject("values")
             addView(label("감속 여유 ${v.optInt("ApproachBrakeMargin")} · 정지 부드러움 ${v.optInt("ApproachStopSmooth")}\n정체 차분함 ${v.optInt("ApproachTrafficCalm")} · 출발 추종 ${v.optInt("LaunchFollowStrength")}",12f))
             addView(button("변경값 확인·적용 화면"){profiles(p.getString("id"))})

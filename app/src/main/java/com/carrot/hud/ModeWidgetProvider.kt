@@ -50,7 +50,7 @@ class ModeWidgetProvider : AppWidgetProvider() {
             else -> R.string.w_mode_unknown_description
         }))
         val time = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date())
-        views.setTextViewText(R.id.modeTitle, if (state.effective != null) "확인한 실제 모드 · $time" else "저장 모드 · 실제 확인 대기")
+        views.setTextViewText(R.id.modeTitle, if (state.effective != null) "운전모드(프로필과 별개) · $time" else "저장 운전모드 · 실제 확인 대기")
         val saved = if (state.saved != null && state.effective != null && state.saved != state.effective)
             "저장: ${modeTextColor(state.saved).first} · " else ""
         views.setTextViewText(R.id.modeHint, saved + state.message)

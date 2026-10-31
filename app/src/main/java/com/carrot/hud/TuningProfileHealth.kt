@@ -22,8 +22,9 @@ object TuningProfileHealth {
         prefs(c).edit().putString(d.id,message).commit()
         ArchiveWidgetStatus.publish(c)
     }
+    internal fun readStatus(api:TuningApi):JSONObject=try {api.state()}catch(_:Exception){api.receipt()}
     fun refresh(c:Context,d:Device) {
         synchronized(this) {if(targetId!=d.id){targetId=d.id;next=0};if(SystemClock.elapsedRealtime()<next||!busy.compareAndSet(false,true))return;next=SystemClock.elapsedRealtime()+60_000}
-        executor.execute {try {val resolved=Net.resolve(c,d) ?: return@execute;if(!resolved.identityNeedsCheck)observe(c,resolved,TuningApi.forDevice(resolved).receipt())}catch(_:Exception){}finally {busy.set(false)}}
+        executor.execute {try {val resolved=Net.resolve(c,d) ?: return@execute;if(!resolved.identityNeedsCheck)observe(c,resolved,readStatus(TuningApi.forDevice(resolved)))}catch(_:Exception){}finally {busy.set(false)}}
     }
 }

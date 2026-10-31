@@ -28,12 +28,9 @@ object TuningWidgetStatus {
         ArchiveWidgetStatus.publish(c)
     }
     fun observe(c:Context,d:Device,state:JSONObject) {
-        if(!state.has("values")||state.optJSONObject("context")?.optString("serial").isNullOrBlank())return
-        val r=state.optJSONObject("receipt") ?: return
-        if(r.optString("phase")!="complete")return
-        val name=r.optString("profile_name","프로필")
-        val text=if(state.optBoolean("current_matches_last"))"마지막 저장값 일치 확인" else "마지막 적용 후 개별 설정 변경"
-        prefs(c,d.id).edit().putString("label","$name · $text").commit()
+        val text=TuningProfilePresentation.stored(state) ?: return
+        val at=java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date())
+        prefs(c,d.id).edit().putString("label","$text · $at 확인").commit()
     }
     fun refreshReadOnly(c:Context){c.sendBroadcast(Intent(c,HudWidgetProvider::class.java).setAction(HudWidgetProvider.ACTION_REFRESH))}
     fun openIntent(c:Context):PendingIntent {

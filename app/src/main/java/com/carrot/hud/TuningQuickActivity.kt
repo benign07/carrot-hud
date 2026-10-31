@@ -22,13 +22,14 @@ class TuningQuickActivity:AppCompatActivity() {
         val expected=intent.getStringExtra("device_id")
         text("프로필 선택 · ${opened?.name ?: "기기 없음"}").textSize=20f
         status=text(TuningWidgetStatus.text(this))
+        text(TuningProfilePresentation.modeExplanation).textSize=13f
         text("선택하면 추가 확인 없이 적용을 요청합니다. P·속도0·조향/가감속 제어 해제가 필요합니다. 저장 확인과 주행 효과는 별개입니다.").textSize=13f
         list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL};box.addView(list)
         val catalog=TuningProfileStore.load(this)
         if(opened==null||expected!=opened?.id)status.text="대상 기기가 바뀌었습니다. 위젯을 새로고침하고 다시 여세요."
         else for(profile in catalog.profiles){
             val name=profile.getString("name")
-            val short=profile.optString("description").substringAfter("[조합 의도] ",profile.optString("description")).substringBefore(". ").take(100)
+            val short=TuningProfilePresentation.intent(profile)
             list.addView(Button(this).apply{text="$name\n$short";isAllCaps=false;setOnClickListener{startWork(true,profile)}})
         }
         if(catalog.problems.isNotEmpty())text(catalog.problems.joinToString("\n"))

@@ -1,0 +1,2316 @@
+{
+  "ok": true,
+  "has_params": true,
+  "items_by_group": {
+    "조향일반": [
+      {
+        "name": "PathOffset",
+        "title": "차선치우침 좌우보정(0)",
+        "descr": "(레인모드)\n (-)좌측 / (+)우측",
+        "min": -150,
+        "max": 150,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CameraYawTrimDeg",
+        "title": "카메라YAW보정*0.01deg(0)",
+        "descr": "카메라 좌우(YAW) 값을 미세조정(+: 오른쪽)",
+        "min": -200,
+        "max": 200,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "AutoTurnControl",
+        "title": "ATC: AutoTurnControl(0)",
+        "descr": "0:사용안함\n1:차선변경\n2:차선변경+속도\n3:속도",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "AutoTurnControlSpeedTurn",
+        "title": "ATC: 턴속도(20)",
+        "descr": "ATC 턴시 적용속도\n0:사용안함",
+        "min": 0,
+        "max": 100,
+        "unit": 5,
+        "default": 20
+      },
+      {
+        "name": "AutoTurnControlTurnEnd",
+        "title": "ATC: 시간거리(3)",
+        "descr": "NOO완료 시간거리(속도*시간)",
+        "min": 0,
+        "max": 30,
+        "unit": 1,
+        "default": 6
+      },
+      {
+        "name": "AutoTurnMapChange",
+        "title": "ATC Helper 맵전환(0)",
+        "descr": "ATC 작동시 자동맵전환",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "LaneChangeNeedTorque",
+        "title": "차선변경 조향토크 사용",
+        "descr": "-1:자동차선변경사용안함\n 0: 즉시 차선변경\n 1: 토크필요",
+        "min": -1,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "LaneChangeDelay",
+        "title": "차선변경 지연시간x0.1s(0)",
+        "descr": "방향지시등을 켜고 설정시간 후 차선변경합니다.",
+        "min": 0,
+        "max": 100,
+        "unit": 10,
+        "default": 0
+      },
+      {
+        "name": "LaneChangeBsd",
+        "title": "차선변경 BSD",
+        "descr": "0: BSD검출(조향토크허용)\n 1: 조향토크불허\n-1: BSD사용안함",
+        "min": -1,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "LaneLineCheck",
+        "title": "차선변경 차선판단",
+        "descr": "0: 색상+타입(노란선차단)\n1: 타입만(점선/실선)\n2: 타입만+실선토크override",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 0
+      }
+    ],
+    "조향토크": [
+      {
+        "name": "LateralTorqueCustom",
+        "title": "_LateralTorqueCustom(0)",
+        "descr": "커스텀 토크 사용\n (TorqueAccelFactor, FrictionFactor 사용을 위해서 켜기)",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "LateralTorqueAccelFactor",
+        "title": "_LateralTorqueAccelFactor*0.001(2500)",
+        "descr": "낮을수록 토크가 강해지다가 어느순간 약해짐 \n 가장 강한 지점의 값 사용",
+        "min": 1000,
+        "max": 6000,
+        "unit": 100,
+        "default": 2500
+      },
+      {
+        "name": "LateralTorqueFriction",
+        "title": "_LateralTorqueFriction*0.001(100)",
+        "descr": "높을수록 미세조향이 많아짐 \n\n 0~50 권장",
+        "min": 0,
+        "max": 1000,
+        "unit": 10,
+        "default": 100
+      },
+      {
+        "name": "LateralTorqueKpV",
+        "title": "_LateralTorqueKp*0.01(100)",
+        "descr": "조향 비례 계수(오차가 클수록 강하게 반응) \n\n 140 권장",
+        "min": 0,
+        "max": 200,
+        "unit": 1,
+        "default": 100
+      },
+      {
+        "name": "LateralTorqueKiV",
+        "title": "_LateralTorqueKi*0.01(10)",
+        "descr": "조향 누적 오차 보정 \n\n 20 권장",
+        "min": 0,
+        "max": 200,
+        "unit": 1,
+        "default": 10
+      },
+      {
+        "name": "LateralTorqueKf",
+        "title": "_LateralTorqueKf*0.01(100)",
+        "descr": "조향 예측 기반 보정 \n\n 85 권장",
+        "min": 0,
+        "max": 200,
+        "unit": 1,
+        "default": 100
+      },
+      {
+        "name": "LateralTorqueKd",
+        "title": "_LateralTorqueKd*0.01(0)",
+        "descr": "조향 미분 계수(급격한 변화에 저항) \n\n 0 권장",
+        "min": 0,
+        "max": 10000,
+        "unit": 10,
+        "default": 0
+      },
+      {
+        "name": "CustomSteerMax",
+        "title": "_CustomSteerMax(0)",
+        "descr": "최대조향토크 \n 270/384/409 중 오류가 안나는 가장 큰 값 사용",
+        "min": 0,
+        "max": 30000,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CustomSteerDeltaUp",
+        "title": "_CustomSteerDeltaUp(0)",
+        "descr": "(토크차량) \n 높을수록 핸들 감는속도 빨라짐",
+        "min": 0,
+        "max": 50,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CustomSteerDeltaDown",
+        "title": "_CustomSteerDeltaDown(0)",
+        "descr": "(토크차량) \n 높을수록 핸들 푸는속도 빨라짐",
+        "min": 0,
+        "max": 50,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CustomSteerDeltaUpLC",
+        "title": "_CustomSteerDeltaUpLC(0)",
+        "descr": "(토크차량) \n 차선변경 시 일시적용 SteerDeltaUp",
+        "min": 0,
+        "max": 50,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CustomSteerDeltaDownLC",
+        "title": "_CustomSteerDeltaDownLC(0)",
+        "descr": "(토크차량) \n 차선변경 시 일시적용 SteerDeltaDown",
+        "min": 0,
+        "max": 50,
+        "unit": 1,
+        "default": 0
+      }
+    ],
+    "레인모드": [
+      {
+        "name": "LatMpcPathCost",
+        "title": "*LATMPC.PathCost(200)",
+        "descr": "(레인모드) 경로추종가중치 \n 높으면 경로우선시함.",
+        "min": 0,
+        "max": 500,
+        "unit": 10,
+        "default": 200
+      },
+      {
+        "name": "LatMpcMotionCost",
+        "title": "*LATMPC.MotionCost(7)",
+        "descr": "(레인모드) 헤딩가중치",
+        "min": 0,
+        "max": 500,
+        "unit": 1,
+        "default": 7
+      },
+      {
+        "name": "LatMpcAccelCost",
+        "title": "*LATMPC.AccelCost(120)",
+        "descr": "(레인모드) 횡가속도제한 \n 낮으면 민첩성증가 안정성감소",
+        "min": 0,
+        "max": 500,
+        "unit": 10,
+        "default": 100
+      },
+      {
+        "name": "LatMpcJerkCost",
+        "title": "*LATMPC.JerkCost(4)",
+        "descr": "(레인모드) 낮추면 빠른조향허용 \n 부드러움 감소",
+        "min": 0,
+        "max": 200,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "LatMpcSteeringRateCost",
+        "title": "*LATMPC.SteerRateCost(7)",
+        "descr": "(레인모드) 조향변화율제한 \n 낮추면 조향이 적극적",
+        "min": 0,
+        "max": 1000,
+        "unit": 100,
+        "default": 7
+      },
+      {
+        "name": "LatMpcInputOffset",
+        "title": "*LATMPC.InputOffset(4)",
+        "descr": "(레인모드) Mpc입력보상 \n 값이 크면 일찍커브에 진입함",
+        "min": 0,
+        "max": 20,
+        "unit": 1,
+        "default": 4
+      },
+      {
+        "name": "UseLaneLineSpeed",
+        "title": "레인모드: 속도(0)",
+        "descr": "설정 속도 이상일 때 레인모드로 전환합니다.",
+        "min": 0,
+        "max": 200,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "UseLaneLineCurveSpeed",
+        "title": "레인모드: 커브속도(0)",
+        "descr": "레인모드를 설정속도 이하에서는 사용하지 않습니다.",
+        "min": 0,
+        "max": 200,
+        "unit": 10,
+        "default": 0
+      },
+      {
+        "name": "AdjustLaneOffset",
+        "title": "레인모드: 차선조절옵셋 (0)cm",
+        "descr": "도로경계쪽/커브안쪽으로 보정합니다.",
+        "min": 0,
+        "max": 500,
+        "unit": 10,
+        "default": 0
+      }
+    ],
+    "조향튜닝": [
+      {
+        "name": "SteerActuatorDelay",
+        "title": "SteerActuatorDelay(30)",
+        "descr": "조향지연값 \n 높을수록 미리 조향 함 \n 0:LiveDelay",
+        "min": 0,
+        "max": 300,
+        "unit": 1,
+        "default": 30
+      },
+      {
+        "name": "LatSmoothSec",
+        "title": "LatSmoothSec(13)x0.01",
+        "descr": "조향필터링값\n 높으면 부드러운조향",
+        "min": 1,
+        "max": 30,
+        "unit": 1,
+        "default": 13
+      },
+      {
+        "name": "LatSuspendAngleDeg",
+        "title": "자동조향일시중지각도(300)",
+        "descr": "조향각이 커지면 자동조향을 일시중지. 15도 이내도 조향각이 돌아오면 재개함.",
+        "min": 45,
+        "max": 300,
+        "unit": 10,
+        "default": 300
+      },
+      {
+        "name": "CustomSR",
+        "title": "CustomSteerRatiox0.1(0)",
+        "descr": "조향비(차량제원 참고)\n 0: LiveSteerRatio 사용",
+        "min": 0,
+        "max": 300,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "SteerRatioRate",
+        "title": "CustomSteerRatioRatex0.01(100)",
+        "descr": "LiveSteerRatio 반영비율\n(CustomSR 0으로 설정해야 함)",
+        "min": 30,
+        "max": 200,
+        "unit": 1,
+        "default": 0
+      }
+    ],
+    "크루즈": [
+      {
+        "name": "CruiseOnDist",
+        "title": "크루즈ON거리(0cm)",
+        "descr": "페달을 땠을 때, 앞차가 가까워지면 크루즈ON",
+        "min": 0,
+        "max": 2500,
+        "unit": 50,
+        "default": 0
+      },
+      {
+        "name": "CruiseEcoControl",
+        "title": "크루즈연비제어(2km/h)",
+        "descr": "HEV 차량의 EV모드 개입을 위해 일시적으로 목표 속도를 증가시킵니다.",
+        "min": 0,
+        "max": 10,
+        "unit": 1,
+        "default": 2
+      },
+      {
+        "name": "CarrotCruiseDecel",
+        "title": "당근크루즈감속도x0.01(-1)",
+        "descr": "당근크루즈 감속도 지정\n -1:크루즈OFF",
+        "min": -1,
+        "max": 200,
+        "unit": 10,
+        "default": -1
+      },
+      {
+        "name": "CarrotCruiseAtcDecel",
+        "title": "당근크루즈감속도ATCx0.01(-1)",
+        "descr": "당근크루즈 ATC 감속도 지정\n -1:변경안함",
+        "min": -1,
+        "max": 200,
+        "unit": 10,
+        "default": -1
+      },
+      {
+        "name": "AutoSpeedUptoRoadSpeedLimit",
+        "title": "자동속도증가 (100)%",
+        "descr": "전방차량에 따라 자동속도증가\n 로드스피드*비율 까지 자동속도올림.",
+        "min": 0,
+        "max": 200,
+        "unit": 10,
+        "default": 0
+      },
+      {
+        "name": "AutoGasSyncSpeed",
+        "title": "자동크루즈속도 업데이트",
+        "descr": "액셀을 밟아 속도가 설정속도보다 빨라지면 설정속도 변경",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ApplyModelSpeed",
+        "title": "모델 주행속도 적용 비율",
+        "descr": "모델이 계산한 주행속도를 설정한 비율만큼 적용합니다.",
+        "min": -120,
+        "max": 120,
+        "unit": 1,
+        "default": 0
+      }
+    ],
+    "가속설정": [
+      {
+        "name": "CruiseMaxVals0",
+        "title": "가속도설정 0 : 0km/h(160)",
+        "descr": "0km/h ~ 10km/h 가속도",
+        "min": 1,
+        "max": 250,
+        "unit": 5,
+        "default": 160
+      },
+      {
+        "name": "CruiseMaxVals1",
+        "title": "가속도설정 1 : 10km/h(160)",
+        "descr": "10km/h ~ 40km/h 가속도",
+        "min": 1,
+        "max": 250,
+        "unit": 5,
+        "default": 160
+      },
+      {
+        "name": "CruiseMaxVals2",
+        "title": "가속도설정 2 : 40km/h(120)",
+        "descr": "40km/h ~ 60km/h 가속도",
+        "min": 1,
+        "max": 250,
+        "unit": 5,
+        "default": 120
+      },
+      {
+        "name": "CruiseMaxVals3",
+        "title": "가속도설정 3 : 60km/h(100)",
+        "descr": "60km/h ~ 80km/h 가속도",
+        "min": 1,
+        "max": 250,
+        "unit": 5,
+        "default": 100
+      },
+      {
+        "name": "CruiseMaxVals4",
+        "title": "가속도설정 4 : 80km/h(80)",
+        "descr": "80km/h ~ 110km/h 가속도",
+        "min": 1,
+        "max": 250,
+        "unit": 5,
+        "default": 80
+      },
+      {
+        "name": "CruiseMaxVals5",
+        "title": "가속도설정 5 : 110km/h(70)",
+        "descr": "110km/h ~ 140km/h 가속도",
+        "min": 1,
+        "max": 250,
+        "unit": 5,
+        "default": 70
+      },
+      {
+        "name": "CruiseMaxVals6",
+        "title": "가속도설정 6 : 140km/h(60)",
+        "descr": "140km/h ~ 가속도",
+        "min": 1,
+        "max": 250,
+        "unit": 5,
+        "default": 60
+      },
+      {
+        "name": "MyDrivingMode",
+        "title": "드라이브모드:(3)",
+        "descr": "1: 연비(ComfortBrake, 가속도 10% 감소)\n 2: 안전(ComfortBrake, 가속도 20% 감소)\n 3: 일반\n 4: 고속(신호무시, 가속도 20%상승)",
+        "min": 1,
+        "max": 4,
+        "unit": 1,
+        "default": 3
+      },
+      {
+        "name": "MyDrivingModeAuto",
+        "title": "드라이브모드: 자동",
+        "descr": "정체조건에서는 자동으로 안전모드로 전환, 앞차가속이 빠르거나 20kmh이상의 속도에서는 일반모드로 전환",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      }
+    ],
+    "주행튜닝": [
+      {
+        "name": "StopDistanceCarrot",
+        "title": "StopDistance(600)cm",
+        "descr": "정지위치 * 0.8",
+        "min": 400,
+        "max": 1000,
+        "unit": 10,
+        "default": 600
+      },
+      {
+        "name": "AChangeCostStarting",
+        "title": "AChangeCostStarting",
+        "descr": "출발가속도제한, 0:빠른가속도",
+        "min": 0,
+        "max": 200,
+        "unit": 10,
+        "default": 10
+      },
+      {
+        "name": "TrafficStopDistanceAdjust",
+        "title": "TrafficStopDistanceAdjust(-150)",
+        "descr": "신호정지위치 보정",
+        "min": -600,
+        "max": 600,
+        "unit": 100,
+        "default": -150
+      },
+      {
+        "name": "JLeadFactor3",
+        "title": "JerkLeadFactor(0)",
+        "descr": "값이 클수록 전방차량의 가속도변화율에 민감하게 반응",
+        "min": 0,
+        "max": 100,
+        "unit": 10,
+        "default": 0
+      },
+      {
+        "name": "LongTuningKpV",
+        "title": "Long KpV(100)x0.01",
+        "descr": "롱컨 비례게인(오차 즉각 반응) \n\n HKG: 100 권장",
+        "min": 0,
+        "max": 200,
+        "unit": 5,
+        "default": 100
+      },
+      {
+        "name": "LongTuningKf",
+        "title": "Long Kf(100)x0.01",
+        "descr": "롱컨 예측기반 보정 \n\n HKG: 100으로 설정 권장",
+        "min": 0,
+        "max": 200,
+        "unit": 5,
+        "default": 0
+      },
+      {
+        "name": "LongTuningKiV",
+        "title": "Long KiV(0)x0.01",
+        "descr": "롱컨 적분게인(누적오차 보정) \n\n HKG: 0으로 설정 권장",
+        "min": 0,
+        "max": 2000,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "LongActuatorDelay",
+        "title": "LongActuatorDelay(20)x0.01",
+        "descr": "롱컨 지연값(높을수록 미리 가감속) \n\n HKG: 20으로 설정 권장",
+        "min": 0,
+        "max": 200,
+        "unit": 5,
+        "default": 20
+      },
+      {
+        "name": "VEgoStopping",
+        "title": "정지출발민감도(50)x0.01",
+        "descr": "값이 낮을수록 빠르게 출발함\n 너무낮추면 추돌위험이 있을수 있음\n (5 권장)",
+        "min": 1,
+        "max": 100,
+        "unit": 5,
+        "default": 50
+      },
+      {
+        "name": "RadarReactionFactor",
+        "title": "Radar reaction factor (100)%",
+        "descr": "값이 낮을수록 선행차량에 대한 반응이 빠름.",
+        "min": 0,
+        "max": 200,
+        "unit": 1,
+        "default": 100
+      },
+      {
+        "name": "StoppingAccel",
+        "title": "정지시작가속도x0.01(0)",
+        "descr": "정지시작가속도 조정, 0: 기존방식",
+        "min": -100,
+        "max": 0,
+        "unit": 10,
+        "default": 0
+      }
+    ],
+    "감속제어": [
+      {
+        "name": "AutoCurveSpeedFactor",
+        "title": "커브속도 조절비율(100%)",
+        "descr": "높으면 커브속도가 느려집니다.",
+        "min": 50,
+        "max": 300,
+        "unit": 5,
+        "default": 100
+      },
+      {
+        "name": "AutoRoadSpeedAdjust",
+        "title": "자동도로제한속도감속 (50)%",
+        "descr": "-1: 도로제한속도로 항상\n 0: 기존속도유지\n50: 중간값\n100: 새로운속도",
+        "min": -1,
+        "max": 100,
+        "unit": 10,
+        "default": 0
+      },
+      {
+        "name": "AutoCurveSpeedLowerLimit",
+        "title": "커브속도 최저속도(30)",
+        "descr": "커브 최저속도 설정",
+        "min": 10,
+        "max": 200,
+        "unit": 10,
+        "default": 30
+      },
+      {
+        "name": "TrafficLightDetectMode",
+        "title": "신호감지 기능",
+        "descr": "0:신호감지안함\n 1:신호정지만 감지\n 2:신호정지/출발 모두",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 2
+      },
+      {
+        "name": "AutoNaviSpeedCtrlEnd",
+        "title": "과속카메라감속 완료 시간(6초)",
+        "descr": "감속종료시점을 설정합니다.",
+        "min": 3,
+        "max": 20,
+        "unit": 1,
+        "default": 6
+      },
+      {
+        "name": "AutoNaviSpeedCtrlMode",
+        "title": "네비게이션감속모드(2)",
+        "descr": "0: 감속안함\n1: 과속카메라\n2: 과속카메라+과속방지턱\n3: 과속카메라+과속방지턱+이동식카메라",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 2
+      },
+      {
+        "name": "AutoRoadSpeedLimitOffset",
+        "title": "도로제한속도맞춤(-1)",
+        "descr": "도로제한속도 + 설정값\n -1: 안함,",
+        "min": -1,
+        "max": 100,
+        "unit": 1,
+        "default": -1
+      },
+      {
+        "name": "AutoNaviSpeedBumpTime",
+        "title": "사고방지턱 감속완료시간시점(1s)",
+        "descr": "",
+        "min": 1,
+        "max": 50,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "AutoNaviSpeedBumpSpeed",
+        "title": "과속방지턱 속도(35Km/h)",
+        "descr": "",
+        "min": 10,
+        "max": 100,
+        "unit": 5,
+        "default": 35
+      },
+      {
+        "name": "AutoNaviSpeedDecelRate",
+        "title": "과속카메라 감속율 x0.01m/s^2(200)",
+        "descr": "낮으면 멀리서부터 감속함",
+        "min": 50,
+        "max": 300,
+        "unit": 10,
+        "default": 200
+      },
+      {
+        "name": "AutoNaviCountDownMode",
+        "title": "네비알림 카운트다운 방법",
+        "descr": "0: 알림없음\n 1: 턴지점+속도\n2: 턴지점+속도+방지턱",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 2
+      },
+      {
+        "name": "TurnSpeedControlMode",
+        "title": "턴속도제어방법",
+        "descr": "0: 속도제어안함\n 1: 비젼\n 2: 비젼+경로(TBT)\n 3: 경로(항상)",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "MapTurnSpeedFactor",
+        "title": "경로턴속도반영비율(100%)",
+        "descr": "작을수록 경로에 따라 속도가 많이 줄어듭니다. (APN 연결시에만)",
+        "min": 50,
+        "max": 300,
+        "unit": 10,
+        "default": 100
+      },
+      {
+        "name": "ModelTurnSpeedFactor",
+        "title": "모델턴속도반영시간(0)x0.1sec",
+        "descr": "클수록 모델의 미래속도가 반영됩니다.",
+        "min": 0,
+        "max": 80,
+        "unit": 10,
+        "default": 0
+      },
+      {
+        "name": "AutoNaviSpeedSafetyFactor",
+        "title": "과속카메라 제한속도적용율(105)%",
+        "descr": "과속카메라에서 도로제한속도*설정값으로 감속합니다",
+        "min": 80,
+        "max": 120,
+        "unit": 1,
+        "default": 105
+      }
+    ],
+    "버튼설정": [
+      {
+        "name": "CruiseButtonMode",
+        "title": "크루즈버튼작동모드(0)",
+        "descr": "0:일반\n1:사용자1\n2:사용자2\n3:사용자3(속도 테이블 사용)",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CancelButtonMode",
+        "title": "캔슬버튼작동모드(0)",
+        "descr": "0:Long control, 1: Long + Lateral",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "LfaButtonMode",
+        "title": "LFA버튼작동모드(0)",
+        "descr": "0:일반\n 1:감속정지&Ready\n 2:당근크루즈",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CruiseButtonTest1",
+        "title": "크루즈버튼스팸쏘기(8)",
+        "descr": "(비롱컨 전용) 속도버튼신호 발송제한시간",
+        "min": 1,
+        "max": 20,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CruiseButtonTest2",
+        "title": "크루즈버튼스팸쉬기(30)",
+        "descr": "(비롱컨 전용) 속도버튼신호 발송 휴지시간",
+        "min": 1,
+        "max": 200,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CruiseButtonTest3",
+        "title": "크루즈버튼스팸연속쏘기(1)",
+        "descr": "(비롱컨 전용) 속도버튼신호 연속회수",
+        "min": 1,
+        "max": 20,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CruiseSpeedUnit",
+        "title": "크루즈버튼속도단위 확장(10)",
+        "descr": "크루즈버튼 속도조절 단위(모드1,2,3, 엑셀톡등)",
+        "min": 1,
+        "max": 100,
+        "unit": 1,
+        "default": 10
+      },
+      {
+        "name": "CruiseButtonLongDelay",
+        "title": "크루즈버튼롱딜레이(40)",
+        "descr": "버튼을 길게 눌렀을 때 기능이 작동하기 전까지의 지연 시간입니다.",
+        "min": 30,
+        "max": 100,
+        "unit": 10,
+        "default": 40
+      },
+      {
+        "name": "CruiseSpeedUnitBasic",
+        "title": "크루즈버튼속도단위 기본(1)",
+        "descr": "크루즈버튼 속도조절 단위(기본단위)",
+        "min": 1,
+        "max": 100,
+        "unit": 1,
+        "default": 10
+      },
+      {
+        "name": "CruiseSpeed1",
+        "title": "크루즈속도1(30)",
+        "descr": "(버튼모드 사용자3) 단계별속도\n 0:도로제한속도 + 자동속도증가 오프셋",
+        "min": 0,
+        "max": 160,
+        "unit": 10,
+        "default": 10
+      },
+      {
+        "name": "CruiseSpeed2",
+        "title": "크루즈속도2(50)",
+        "descr": "(버튼모드 사용자3) 속도테이블 2번째",
+        "min": 1,
+        "max": 160,
+        "unit": 10,
+        "default": 10
+      },
+      {
+        "name": "CruiseSpeed3",
+        "title": "크루즈속도3(80)",
+        "descr": "(버튼모드 사용자3) 속도테이블 3번째",
+        "min": 1,
+        "max": 160,
+        "unit": 10,
+        "default": 10
+      },
+      {
+        "name": "CruiseSpeed4",
+        "title": "크루즈속도4(110)",
+        "descr": "(버튼모드 사용자3) 속도테이블 4번째",
+        "min": 1,
+        "max": 160,
+        "unit": 10,
+        "default": 10
+      },
+      {
+        "name": "CruiseSpeed5",
+        "title": "크루즈속도5(130)",
+        "descr": "(버튼모드 사용자3) 속도테이블 5번째",
+        "min": 1,
+        "max": 160,
+        "unit": 10,
+        "default": 10
+      },
+      {
+        "name": "PaddleMode",
+        "title": "패들시프트모드(0)",
+        "descr": "0:크루즈ON, 1:크루즈대기, 2:자동감속, 3:CarrotCruise ",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 1
+      }
+    ],
+    "시작": [
+      {
+        "name": "CruiseStartCurrentSpeed",
+        "title": "크루즈 시작·재개 시 현재 속도",
+        "descr": "LX3 오파 속도제어를 새로 켤 때 이전 설정속도 대신 그 순간의 계기판 기준 속도로 시작합니다. 기본 켜짐. 0: 기존 RES 동작, 1: 현재 속도. 정지 중에는 기존 최소 설정속도(5km/h)를 유지하며, 이미 켜진 크루즈의 정지·출발이나 LFA만 켜기는 속도를 재설정하지 않습니다. 시작 이후 속도 버튼·내비 제한·감속 제어는 정상 작동합니다. 순정 크루즈 속도를 강제로 바꾸는 기능은 아닙니다. 계기판 속도가 차륜 속도와 크게 다르거나 비정상이면 차륜 속도를 사용합니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "AlwaysLateral",
+        "title": "상시 조향",
+        "descr": "크루즈가 켜져있지 않아도 조향제어를 허용합니다.\n0: 끄기, 1: 켜기",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "RecordRoadCam",
+        "title": "RoadCam녹화",
+        "descr": "저장소에 비디오 녹화\n0:녹화안함,1:일반카메라\n2:일반카메라+광각카메라",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "HDPuse",
+        "title": "HDP 사용(CCNC)",
+        "descr": "1:APN사용시\n2:항상",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "MapboxStyle",
+        "title": "맵박스 스타일",
+        "descr": "0: 기본 배경\n 1: 어두운 배경\n 2: 위성 지도",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "DisableMinSteerSpeed",
+        "title": "저속조향제한해제",
+        "descr": "저속조향이 안되는 차량 제한해제(SMDPS장착차량): 1",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "SpeedFromPCM",
+        "title": "PCM차량속도제어",
+        "descr": "PCM(비롱컨)속도제어방법\n0:커브/카메라 감속+롱컨\n1:버튼스패밍안함(순정SCC)\n2:커브/카메라 감속\n3: Honda/Toyota",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "MaxTimeOffroadMin",
+        "title": "자동전원OFF(분)",
+        "descr": "시동이 꺼지고 해당 시간이 경과하면 콤마가 꺼집니다.",
+        "min": 0,
+        "max": 3000,
+        "unit": 10,
+        "default": 60
+      },
+      {
+        "name": "DisableDM",
+        "title": "DisableDM",
+        "descr": "1.DisableDM, 2: +EnableWebRTC, reboot required",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "MuteDoor",
+        "title": "도어감지안함",
+        "descr": "",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "MuteSeatbelt",
+        "title": "안전벨트감지안함",
+        "descr": "",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "HapticFeedbackWhenSpeedCamera",
+        "title": "핸들햅틱기능사용(0)",
+        "descr": "0: 사용안함\n1: 진동\n 2: 계기판\n 3: HUD표시",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "MaxAngleFrames",
+        "title": "MaxAngleFrames(89)",
+        "descr": "89 권장",
+        "min": 80,
+        "max": 100,
+        "unit": 1,
+        "default": 89
+      },
+      {
+        "name": "HyundaiCameraSCC",
+        "title": "HYUNDAI: CAMERA SCC",
+        "descr": "1:롱컨차량\n 2:크루즈 상태 동기화\n 3:순정크루즈(CANFD롱컨배선)",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "IsLdwsCar",
+        "title": "HYUNDAI: LDWS ONLY CAR(0)",
+        "descr": "LDWS ONLY CAR는 ON",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CanfdHDA2",
+        "title": "CANFD HDA2지원(0)",
+        "descr": "1: HDA2 차량",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "CanfdDebug",
+        "title": "CANFD Debug(0)",
+        "descr": "",
+        "min": -1,
+        "max": 128,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "HotspotOnBoot",
+        "title": "부팅시 핫스팟켜기",
+        "descr": "COMMA에 USIM을 장착한경우 핫스팟을 자동으로 켜주는 기능",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "SoftwareMenu",
+        "title": "소프트웨어메뉴활성화",
+        "descr": "메모리오류가 있을때 끄기",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "SoundVolumeAdjust",
+        "title": "사운드볼륨조절(100%)",
+        "descr": "",
+        "min": 5,
+        "max": 200,
+        "unit": 5,
+        "default": 0
+      },
+      {
+        "name": "SoundVolumeAdjustEngage",
+        "title": "사운드볼륨조절, 인게이지 볼륨(10%)",
+        "descr": "",
+        "min": 5,
+        "max": 200,
+        "unit": 5,
+        "default": 0
+      }
+    ],
+    "오토크루즈": [
+      {
+        "name": "AutoCruiseControl",
+        "title": "오토크루즈제어(HKG only)",
+        "descr": "조건에 따라 자동으로 크루즈 ON(소프트홀드포함)\n1:오토크루즈사용\n2:소프트홀드 오류 발생 차량(스팅어등)",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "AutoGasTokSpeed",
+        "title": "오토크루즈: 엑셀톡 시작속도",
+        "descr": "엑셀톡기능:가속페달을 톡 밟았다가 뗌\n설정속도 이상에서 작동",
+        "min": 0,
+        "max": 200,
+        "unit": 5,
+        "default": 0
+      },
+      {
+        "name": "AutoGasCancelSpeed",
+        "title": "가속페달 해제 시 크루즈 해제 속도(30)",
+        "descr": "가속페달에서 발을 뗐을 때 현재 속도가 설정값 미만이면 크루즈를 해제합니다.",
+        "min": 0,
+        "max": 200,
+        "unit": 5,
+        "default": 30
+      },
+      {
+        "name": "AutoEngage",
+        "title": "오토인게이지",
+        "descr": "주행시작시 자동 시작\n1:조향ON, 2:조향ON + 크루즈 대기",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 0
+      }
+    ],
+    "화면": [
+      {
+        "name": "ShowDebugUI",
+        "title": "디버그정보 표시",
+        "descr": "",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "ShowTpms",
+        "title": "TPMS정보 표시",
+        "descr": "0:표시안함\n 1: 위\n 2: 아래\n 3: 둘다",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "ShowDateTime",
+        "title": "시간정보표시",
+        "descr": "0:표시안함\n 1:시간+날짜\n 2:시간\n 3:날짜",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "ShowPathEnd",
+        "title": "패스끝표시",
+        "descr": "",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "ShowDeviceState",
+        "title": "디바이스정보 표시",
+        "descr": "",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "ShowLaneInfo",
+        "title": "차선정보",
+        "descr": "-1:없음\n 0:패스만\n 1:레인\n 2:로드엣지",
+        "min": -1,
+        "max": 2,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "ShowRadarInfo",
+        "title": "레이더감지정보(0)",
+        "descr": "0: 안함\n 1: 표시함 \n2: 상대위치\n 3: 정지차량",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ShowRouteInfo",
+        "title": "경로AR표시(0)",
+        "descr": "APN 연결시에만 작동합니다.\n 0: 안함\n 1: 표시함",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ShowPlotMode",
+        "title": "디버그플롯(0)",
+        "descr": "0: 끄기, 1: 가속도, 2: 속도+가속도, 3: 모델, 4: Lead, 5: Lead2, 6: Steer, 7: SteerA, 8: Curvature",
+        "min": 0,
+        "max": 8,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ShowCustomBrightness",
+        "title": "주행중 화면밝기(100%)",
+        "descr": "주행 시작 약 10초 후 화면밝기 비율\n0: 주변밝기 자동조절\n100: 항상 최대 밝기",
+        "min": 0,
+        "max": 100,
+        "unit": 5,
+        "default": 100
+      },
+      {
+        "name": "ShowModelView",
+        "title": "주행화면 표시 모드(C4)",
+        "descr": "주행 중 화면 밝기가 설정값 근처까지 낮아졌을 때 표시 방식\n0: 카메라와 모델 표시\n1: 카메라만 표시\n2: 모델만 표시\n3: 카메라와 모델 숨김",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 0
+      }
+    ],
+    "화면패스": [
+      {
+        "name": "CarrotTireTrajectory",
+        "title": "타이어 궤적 표시(0)",
+        "descr": "타이어 궤적 그라데이션 표시 여부를 설정합니다.\n 0: 끄기\n 1: 켜기",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ShowPathMode",
+        "title": "패스종류,레인리스(9)",
+        "descr": "0:일반,1,2:사각,3,4:^^,5,6:사각,7,8:^^,9,10,11:smooth^^,12:smooth2^^,13:3줄,14:2줄,15:1줄",
+        "min": 0,
+        "max": 15,
+        "unit": 1,
+        "default": 9
+      },
+      {
+        "name": "ShowPathColor",
+        "title": "패스색상,레인리스(12)",
+        "descr": "(+10:띠)0:빨,1:주,2:노,3:초,4:파,5:남,6:보,7:고,8:흰,9:검,20:Auto",
+        "min": 0,
+        "max": 20,
+        "unit": 1,
+        "default": 12
+      },
+      {
+        "name": "ShowPathColorCruiseOff",
+        "title": "패스색상,크루즈OFF(1)",
+        "descr": "(+10:띠)0:빨,1:주,2:노,3:초,4:파,5:남,6:보,7:고,8:흰,9:검",
+        "min": 0,
+        "max": 19,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "ShowPathModeLane",
+        "title": "패스종류,레인모드(11)",
+        "descr": "0:일반,1,2:사각,3,4:^^,5,6:사각,7,8:^^,9,10,11:smooth^^,12:smooth2^^,13:3줄,14:2줄,15:1줄",
+        "min": 0,
+        "max": 15,
+        "unit": 1,
+        "default": 11
+      },
+      {
+        "name": "ShowPathColorLane",
+        "title": "패스색상,레인모드(3)",
+        "descr": "(+10:띠)0:빨,1:주,2:노,3:초,4:파,5:남,6:보,7:고,8:흰,9:검,20:Auto",
+        "min": 0,
+        "max": 20,
+        "unit": 1,
+        "default": 3
+      }
+    ],
+    "개발 중 기능": [
+      {
+        "name": "ManualSteerWithBlinker",
+        "title": "깜빡이 사용 중 수동조향",
+        "descr": "LX3에서 자동차선변경이 꺼진 경우(-1), 한쪽 깜빡이가 조향보조를 약1초 동안 줄입니다. 차량 신호상 깜빡이 꺼짐이 확인되고 분명한 조향 힘이 풀리면 현재 출력에서 약0.2초 동안 복귀합니다. 가볍게 잡는 것은 유지하며 분명한 힘에는 양보합니다. 조향각15도 미만이거나 속도약29km/h 이상·85도 미만의 안정된 커브(조향속도12도/초 이하0.2초)일 때 복귀합니다. 저속 회전·계속 힘을 주는 중에는 기다립니다. 물리 레버 종료부터는 기존 깜빡이 신호 필터 지연이 추가될 수 있습니다. 실제 제어권한·정상CAN·기존 각도/토크 제한이 우선하고 취소·고장 정지는 즉시 적용합니다. 가감속 제어는 별개입니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "EnableCornerRadar",
+        "title": "주변 대상 상시 표시",
+        "descr": "LX3에서는 순정 모듈의 표시 대상·유형·숨김을 보존하고, 양쪽 순정 형식이 완전히 비어 있을 때 이전처럼 신선한 레이더의 전방 측방 대상을 1초 이상 연속 추적한 뒤 일반 회색 대상으로 보완합니다. 정지·저속 대상도 표시하지만 차량 분류가 아니어서 벽·분리대 등 구조물이 섞일 수 있습니다. 차선 인식이나 이동속도3m/s를 별도 표시 조건으로 삼지 않습니다. 오파 화면에서는 실제 송신과 현재 레이더가 맞는 미분류 대상을 중립 마커로 표시하며, 유형이 확인된 순정 대상은 해당 아이콘을 유지합니다. 신선한 영상·위치·보정이 없거나 전방 카메라 밖이면 그리지 않습니다. 0은 영상 표시 끄기, 1은 켜기, 2는 기존 끼어들기 검출도 유지합니다. 차선 내 거리두기는 별도 조건을 따르며 이 표시나 화면 좌표를 제어 입력으로 사용하지 않습니다.",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ApproachComfortEnabled",
+        "title": "앞차 접근·정차 편안함",
+        "descr": "LX3 오파 종방향 제어 전용입니다. 켜면 아래 네 설정을 적용합니다. 끄면 기존 당근 계산으로 돌아갑니다. 가속·브레이크 페달 개입, 제어 비활성, 차선변경, 실험모드, 오래되거나 잘못된 레이더에서는 적용하지 않습니다. 약 1초 주기로 반영됩니다. 정지 간격은 기존 StopDistanceCarrot 설정을 사용합니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ApproachCoastStrength",
+        "title": "앞차 감속 시 가속 억제",
+        "descr": "앞차 접근·정차 편안함을 켜야 적용됩니다. 느리거나 감속하는 앞차에 접근할 것으로 예상되면 양의 가속 상한을 낮춥니다. 예측 범위는 아래 감속 여유 설정에 따라 4~7초입니다. 높을수록 가속을 더 줄이며 충분한 접근 신호가 있어야 상한 0까지 내려갑니다. 0은 추가 억제 없음입니다. 실제 타력주행이나 제동 시작 시점을 보장하지 않으며 기존의 더 강한 감속은 완화하지 않습니다. 화면의 가속 억제 표시는 이 기능이나 정체 추종 차분함으로 양의 가속 상한이 낮아진 상태를 뜻합니다. 정차 중에도 나타날 수 있으며, 실제 타력주행·무동력 상태를 감지했다는 뜻은 아닙니다.",
+        "min": 0,
+        "max": 100,
+        "unit": 5,
+        "default": 40
+      },
+      {
+        "name": "ApproachBrakeMargin",
+        "title": "중·고속 접근 감속 여유",
+        "descr": "앞차 접근·정차 편안함을 켜야 적용됩니다. 중속부터 접근 여유를 확보합니다. 최대 설정에서 약 50km/h는 최대 0.50초, 저속에서는 작아집니다. 감속·동적 TF가 이미 확보한 동일 여유를 먼저 반영해 중복 추가하지 않습니다. 기존 TF를 깎지 않고 합계 2.5초를 넘는 새 여유는 만들지 않습니다. 설정은 접근 예측 범위도 4~7초로 조절합니다. 물리 장애물·제동 한계·정지 간격은 유지합니다. 실제 제동 개시나 도로 안전을 보장하는 수치는 아닙니다.",
+        "min": 0,
+        "max": 100,
+        "unit": 5,
+        "default": 40
+      },
+      {
+        "name": "ApproachStopSmooth",
+        "title": "저속 정차 매끄러움",
+        "descr": "앞차 접근·정차 편안함을 켜야 적용됩니다. 저속에서 앞차와 여유가 있고 약한 감속 중일 때 기존 jerk 및 이전 가속도와의 변화 비용에 배율을 곱합니다. 주행모드·차간거리 성향이 정한 기본 반응은 유지하며 높을수록 변화가 완만한 계획을 선호합니다. 급접근·가까운 앞차·강한 감속에서는 추가 배율을 해제합니다. 브레이크 강제 해제·제동 한계·정지유지 변경은 없습니다. 0은 추가 비용 없음입니다. 간격 유연화도 켜져 있으면 약한 저속 감속에서 이동 시간거리 완화를 허용합니다. 0이면 이 저속 분기를 끕니다.",
+        "min": 0,
+        "max": 100,
+        "unit": 5,
+        "default": 40
+      },
+      {
+        "name": "ApproachTrafficCalm",
+        "title": "정체 추종 차분함",
+        "descr": "앞차 접근·정차 편안함을 켜야 적용됩니다. 약 22km/h 이하에서 가까운 저속 앞차를 따라갈 때 양의 가속 상한을 완만히 낮춥니다. 높을수록 재가속을 차분하게 하며 최대 설정에서 상한을 최대 절반 줄입니다. 기존 가속 억제와 강한 쪽을 사용합니다. 출발 허용·정지유지·차간거리 버튼은 기존 동작을 유지합니다. 0은 추가 억제 없음입니다. 화면의 가속 억제 표시는 이 기능이나 정체 추종 차분함으로 양의 가속 상한이 낮아진 상태를 뜻합니다. 정차 중에도 나타날 수 있으며, 실제 타력주행·무동력 상태를 감지했다는 뜻은 아닙니다.",
+        "min": 0,
+        "max": 100,
+        "unit": 5,
+        "default": 40
+      },
+      {
+        "name": "C3xLiteBuzzerMute",
+        "title": "일반 부저·알림음 끄기",
+        "descr": "C3xLite 본체 옵션과 독립입니다. 켜면 일반 알림의 기기 부저·스피커 소리를 끕니다. 핸들 진동 알림은 별도 설정이므로 둘 다 켜거나 진동만 사용할 수 있습니다. 제어 해제·제어 거부·운전자 주의·긴급 경고 등 기존 보호 경고음은 유지합니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "C3xLiteHapticNotifications",
+        "title": "일반 알림 핸들 진동",
+        "descr": "LX3 실험 기능입니다. C3xLite 본체·일반 부저 끄기와 독립적으로 일반 알림 때 기존 VIBRATE 신호를 요청합니다. 조향토크로 진동을 만들지 않으며 실제 진동모터 반응은 아직 미검증입니다. 유효한 CAN·활성 제어가 필요하고 깜빡이 때는 요청하지 않습니다. 과속카메라 햅틱은 별도 설정입니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ApproachFlexibleGap",
+        "title": "안정 접근 시 간격 유연화 (시험)",
+        "descr": "시험 기능·기본 끔. 앞차 접근·정차 편안함을 켜야 LX3 일반 ACC에 적용됩니다. 같은 레이더 앞차가 3초 이상 안정적으로 접근할 때 이동 시간거리 부분만 서서히 완화합니다. 기존 정속 추종은 최소 1.25초를 유지합니다. 저속 정차 매끄러움 값이 0보다 크고 약 4~22km/h에서 차와 앞차가 약하게 감속하면 짧은 기본 시간거리도 선택 비율까지 완화할 수 있습니다. 정차거리·제동거리·기존 MPC 위험경계는 유지하며 위험·끼어들기·인식 이상 시 원래 목표로 즉시 복귀합니다. 실제 거리가 즉시 늘어나는 뜻은 아닙니다. 정차 중 간격을 좁히려 재가속하지 않습니다. 실제 도로 부드러움은 검증 전입니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ApproachFlexibleGapMin",
+        "title": "↳ 유연화 최소 시간거리 비율 (%)",
+        "descr": "70~100%, 기본 70%. 이동 시간거리 부분만 줄이는 최대 비율이며 전체 차간거리의 비율이 아닙니다. 80%면 이 부분을 최대 20% 완화합니다. 정차 간격·속도차 제동 여유는 줄이지 않습니다. 정속에서는 1.25초, 약한 저속 감속에서는 기본 시간거리의 선택 비율과 기존 MPC 위험경계+여유가 우선합니다. 100은 추가 완화 없음. 간격을 줄이기 위한 양의 가속은 억제합니다. 70% 도달이나 실제 부드러움을 보장하지 않습니다.",
+        "min": 70,
+        "max": 100,
+        "unit": 5,
+        "default": 70
+      },
+      {
+        "name": "C3xLiteHapticEngage",
+        "title": "인게이지·제어 시작",
+        "descr": "일반 알림 핸들 진동 요청이 켜져 있을 때 해당 알림의 진동을 선택합니다. 실제 알림과 제어 활성 상태가 함께 있어야 하며 방향지시등이 켜진 동안에는 요청하지 않습니다. 알림 발생 조건 자체를 만들거나 제어권한을 부여하지 않습니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "C3xLiteHapticTraffic",
+        "title": "신호 변경 알림",
+        "descr": "일반 알림 핸들 진동 요청이 켜져 있을 때 해당 알림의 진동을 선택합니다. 실제 알림과 제어 활성 상태가 함께 있어야 하며 방향지시등이 켜진 동안에는 요청하지 않습니다. 알림 발생 조건 자체를 만들거나 제어권한을 부여하지 않습니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "C3xLiteHapticLaneChange",
+        "title": "차선 변경 알림",
+        "descr": "방향지시등이 켜진 동안 항상 억제되므로 현재 일반적인 차선 변경 상황에서는 진동하지 않습니다. 일반 알림 핸들 진동 요청이 켜져 있을 때 해당 알림의 진동을 선택합니다. 실제 알림과 제어 활성 상태가 함께 있어야 하며 방향지시등이 켜진 동안에는 요청하지 않습니다. 알림 발생 조건 자체를 만들거나 제어권한을 부여하지 않습니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "C3xLiteHapticStopping",
+        "title": "정지·오토홀드 알림",
+        "descr": "일반 알림 핸들 진동 요청이 켜져 있을 때 해당 알림의 진동을 선택합니다. 실제 알림과 제어 활성 상태가 함께 있어야 하며 방향지시등이 켜진 동안에는 요청하지 않습니다. 알림 발생 조건 자체를 만들거나 제어권한을 부여하지 않습니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "C3xLiteHapticNavigation",
+        "title": "길 안내 알림",
+        "descr": "일반 알림 핸들 진동 요청이 켜져 있을 때 해당 알림의 진동을 선택합니다. 실제 알림과 제어 활성 상태가 함께 있어야 하며 방향지시등이 켜진 동안에는 요청하지 않습니다. 알림 발생 조건 자체를 만들거나 제어권한을 부여하지 않습니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "C3xLiteHapticReverse",
+        "title": "후진 알림",
+        "descr": "후진 기어에서는 제어가 비활성이므로 현재 이 항목으로 진동하지 않습니다. 일반 알림 핸들 진동 요청이 켜져 있을 때 해당 알림의 진동을 선택합니다. 실제 알림과 제어 활성 상태가 함께 있어야 하며 방향지시등이 켜진 동안에는 요청하지 않습니다. 알림 발생 조건 자체를 만들거나 제어권한을 부여하지 않습니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "C3xLiteHapticPattern",
+        "title": "일반 알림 진동 패턴",
+        "descr": "0: 한 번 0.8초(인게이지 실차 확인)\n1: 두 번 0.3초·쉼 0.2초·0.3초(시험)\n2: 세 번 0.2초·쉼 0.1초(시험)\n모터 세기 조절이 아닙니다. 반복 패턴의 실제 모터 반응은 미검증입니다. 과속카메라는 별도 순정 패턴입니다.",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "LaunchFollowStrength",
+        "title": "재출발 앞차 추종 보완",
+        "descr": "정지 후 움직이기 시작한 뒤, 같은 레이더 앞차가 안정적으로 멀어지고 목표거리보다1m 넘게 여유가 생기면 기존 가속표를 이 비율(%) 이내에서 보완합니다. 마지막 저속 정지 판정 후25초 이내에서만 후보가 됩니다. 20km/h부터 보완을 줄여40km/h에서는 완전히 종료하고, 40km/h 도달 뒤에는 다시 저속 정지 판정이 있어야 재개합니다. 40km/h 이상에서는 이 보완이 가속 상한을 높이지 않으며 기존 MPC 추종·속도별 거리 보정·접근 보완은 그대로입니다. 40km/h 도달 전에는25초 창 안에서 조건에 따라 대기·재개할 수 있습니다. 상대속도가 약0.6초 동안 지속적으로 증가하면 이 설정으로 허용한 저속 보완 상한까지 점진적으로 사용합니다. 한 번의 값 튐은 증가로 인정하지 않으며 실제 가속은 MPC·커브·감속 제한이 결정합니다. 정지 해제·최소거리·제동·Panda 권한은 바꾸지 않습니다. 접근 감속·끼어들기·가까운 두 번째 앞차에는 적용하지 않습니다. 0은 기존 동작, 시험 시작은10을 권장합니다. 최대 양가속1.6m/s²를 넘기는 보완은 하지 않습니다. 실제 출발 지연이나 간격 개선을 보장하지 않습니다.",
+        "min": 0,
+        "max": 20,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "YellowLineBiasCm",
+        "title": "노란 중앙선 쪽 여유 조절",
+        "descr": "왼쪽의 노란 차선이2초 이상 지속되고 양쪽 차선 신뢰도·차폭 여유가 충분할 때 차로 안에서 이 거리(cm) 이내로 왼쪽에 붙습니다. 오른쪽 노란선·양쪽 노란선·도로 경계·왼쪽 차량·중앙선 방향 커브에서는 해제합니다.  반대 차로와의 여유는 줄어드므로 안전 개선을 보장하는 기능이 아닙니다. 기본0, 첫 비교는5cm 이하 권장. 기본은 순정 모델 모드입니다. 이 이동 옵션을 켜도 차로 모드로 바꾸지 않습니다. 모델 모드에서는 실제 편향이0으로 대기하며, 명시적으로 선택한 차로 추종이 실제 활성일 때만 적용 후보가 됩니다. 기록 전용은 기본 경로를 바꾸지 않습니다. 차로 추종이 선택돼도 폭·점유·신뢰도 등의 보정 조건을 통과하지 못하면 추가 편향은0일 수 있습니다.",
+        "min": 0,
+        "max": 10,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "NearbyVehicleBiasCm",
+        "title": "주변 차량 반대쪽 여유 조절",
+        "descr": "HUD 차량 아이콘의 화면 좌표 대신 원본 전방 레이더 추적을 사용합니다. 앞쪽 약5~25m의 이동 차량을1초 이상 일관되게 확인하고 차선·차폭 여유가 충분할 때, 그 차량 반대쪽으로 차로 안에서 이 거리(cm) 이내의 편향을 요청합니다. 순정 측방 점유 신호는 이동을 제한하는 용도이며 그 신호만으로 반대쪽 편향을 만들지는 않습니다. 양쪽 점유·불확실한 위치·운전자 개입·깜빡이·차선변경 때 해제합니다. 이미 나란히 있거나 뒤에 있는 차량과의 여유를 보장하지 않습니다.  기본0, 첫 비교는5cm 이하 권장. 기본은 순정 모델 모드입니다. 이 이동 옵션을 켜도 차로 모드로 바꾸지 않습니다. 모델 모드에서는 실제 편향이0으로 대기하며, 명시적으로 선택한 차로 추종이 실제 활성일 때만 적용 후보가 됩니다. 기록 전용은 기본 경로를 바꾸지 않습니다. 차로 추종이 선택돼도 폭·점유·신뢰도 등의 보정 조건을 통과하지 못하면 추가 편향은0일 수 있습니다.",
+        "min": 0,
+        "max": 10,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "LateralMarginShadow",
+        "title": "측방 여유 기록만 하기",
+        "descr": "켜면 노란선/주변 차량 이동 후보와 해제 이유를 기록하되 조향 경로에는 적용하지 않습니다. 기본 켜짐입니다. 끄고 이동량을 설정해야 실제 적용 후보가 됩니다. 실제 적용도 차로 모드·유효한 양쪽 차선·신선한 차량/레이더 정보가 필요합니다. 시험 옵션 변경은 P·속도0·제어 해제 상태에서만 가능합니다. 기록 전용은 차로 추종이 꺼져 있어도 후보를 계산하며 경로를 바꾸지 않습니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "CruiseOffKeepLateral",
+        "title": "크루즈 해제 시 조향보조 유지",
+        "descr": "LX3 전용. 켜면 핸들 크루즈 버튼을 다시 눌러 속도 제어를 끌 때, 이미 요청된 조향보조는 유지합니다. 조향보조가 꺼져 있었다면 새로 켜지지 않습니다. LFA 버튼으로 조향보조를 끌 수 있으며 고장·입력 이상·통신 및 Panda 권한 검사는 그대로 적용됩니다. 꺼짐은 기존처럼 크루즈와 조향 요청을 함께 해제합니다. 기본 꺼짐. 버튼 전환 때 정상 권한 확인을 다시 거치며, 허용되지 않은 조향 출력을 유지하는 기능이 아닙니다. 옵션은 정차 후 변경합니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "DriverPositionHold",
+        "title": "수동 위치 조정 잠시 유지",
+        "descr": "LX3 시험 기능·기본 꺼짐. 깜빡이 없이 확정된 조향 개입을0.3초 이상 유지하고, 개입 전과 놓기 직전의 안정된0.3초 평균 위치가 최소5cm 이상 달라졌을 때, 힘을 풀면 조정 위치를3초 유지하고5초 동안 기존 중앙 경로로 돌아옵니다. 조향보조 힘의0.2초 복구와 별개이며, 조향각이나 토크를 고정하지 않습니다. 추가 이동량은±10cm와 기존 총편향±40cm 범위로 제한합니다. 속도30~110km/h·신선하고 신뢰도 높은 양쪽 차선·충분한 차폭·정상 제어가 필요합니다. 점유 측 이동·깜빡이·차선변경 때 해제하며 일시적 인식 저하는 편향을 초당5cm씩 줄입니다. 관측창의 변동폭은4cm 이하여야 하며 불확실할수록 필요한 변위를 늘립니다. 예측 양보만 있고 확정 운전자 개입이 없는 경우나 위치가 계속 움직이는 중에 놓은 경우에는 유지하지 않을 수 있습니다. 기본 모델 모드에서는 위치 유지가 대기하며, 이 옵션이 차로 모드를 켜지 않습니다. 명시적으로 선택한 차로 추종이 실제 활성인 경우에만 적용 후보가 됩니다. 명시 차로 모드에서 보정 위치·개입 전후와 영상 시점을 기록합니다. 모델 모드에서는 위치를 캡처하지 않고 대기 사유만 기록합니다. 자동 학습으로 주행값을 변경하지 않습니다. 정차 후 변경합니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "NotificationBorderPulse",
+        "title": "비긴급 알림 화면 테두리",
+        "descr": "일반 알림과 주황색 주의 경고 등 비긴급 알림 때 화면 테두리를 주황색으로 초당1회 강조합니다. 짧은 알림도 시작부터0.5초 표시하며 부저·진동과 독립입니다. 긴급 경고의 빨간 테두리와 기존 경고 문구·중요 경고음은 이 설정을 꺼도 유지합니다. 실제 진동 모터 반응은 별도 검증이 필요합니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 1
+      }
+    ],
+    "레이더설정": [
+      {
+        "name": "EnableRadarTracks",
+        "title": "레이더트랙,SCC레이더설정(0)",
+        "descr": "-2: VOACC 비전 only 시험\n-1: SCC 항상 사용\n0: SCC 레이더 사용\n1: 레이더트랙 사용\n2: 레이더트랙 + 저속 SCC 함께 사용\n3: 레이더트랙 + 저속 SCC + 끼어드는 차량 + 스텔스 차량",
+        "min": -2,
+        "max": 3,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "RadarLatFactor",
+        "title": "끼어들기 감지 감도(0)",
+        "descr": "높을수록 옆차선에서 들어오는 차량을 더 빨리 잡지만, 너무 높으면 옆차를 앞차로 볼 수 있음",
+        "min": 0,
+        "max": 1000,
+        "unit": 10,
+        "default": 0
+      }
+    ],
+    "차량간격": [
+      {
+        "name": "TFollowGap1",
+        "title": "TF(1): 차량간격시간1x0.01s(110)",
+        "descr": "차간거리 1단계 차간 시간거리",
+        "min": 40,
+        "max": 300,
+        "unit": 5,
+        "default": 110
+      },
+      {
+        "name": "TFollowGap2",
+        "title": "TF(2): 차량간격시간2x0.01s(120)",
+        "descr": "차간거리 2단계 차간 시간거리",
+        "min": 40,
+        "max": 300,
+        "unit": 5,
+        "default": 120
+      },
+      {
+        "name": "TFollowGap3",
+        "title": "TF(3): 차량간격시간3x0.01s(140)",
+        "descr": "차간거리 3단계 차간 시간거리",
+        "min": 40,
+        "max": 300,
+        "unit": 5,
+        "default": 140
+      },
+      {
+        "name": "TFollowGap4",
+        "title": "TF(4): 차량간격시간4x0.01s(160)",
+        "descr": "차간거리 4단계 차간 시간거리",
+        "min": 40,
+        "max": 300,
+        "unit": 5,
+        "default": 160
+      },
+      {
+        "name": "DynamicTFollow",
+        "title": "동적 차간거리 설정(0)",
+        "descr": "선행차의 움직임 변화에 따라 차간거리를 동적으로 조절",
+        "min": 0,
+        "max": 100,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "EnableSpeedTF",
+        "title": "속도별 차간거리 설정(0)",
+        "descr": "-1:0/30/60/90km/h 단계\n-2:0/40/80/120km/h 단계\n-3:0/50/100/150km/h 단계\n1~50%:100km/h 이하 TF 감소",
+        "min": -3,
+        "max": 50,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "DynamicTFollowLC",
+        "title": "동적 차간거리 설정 차선변경(100)%",
+        "descr": "차선변경시작시 일시적으로 차량간격을 좁힙니다.",
+        "min": 20,
+        "max": 100,
+        "unit": 5,
+        "default": 0
+      },
+      {
+        "name": "TFollowDecelBoost",
+        "title": "감속TFollow부스트비율(30)",
+        "descr": "감속 중 TF 추가 확보 비율. 값이 클수록 감속 시 차간거리를 더 여유있게 유지합니다.",
+        "min": 0,
+        "max": 100,
+        "unit": 10,
+        "default": 10
+      }
+    ],
+    "외부 HUD": [
+      {
+        "name": "ClusterHud",
+        "title": "외부 HUD 활성화(0)",
+        "descr": "0: 끄기\n1: TURZX 9.2인치\n2: TURZX 12.3인치",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ClusterHudDebug",
+        "title": "외부 HUD 디버깅(0)",
+        "descr": "0: 온로드에서만\n1: 항상\n2: 항상+UI\n3: 항상+Navi",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ClusterHudBrightness",
+        "title": "외부 HUD 밝기(0)",
+        "descr": "0: 자동\n1~100: 밝기",
+        "min": 0,
+        "max": 100,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ClusterHudEncoder",
+        "title": "외부 HUD 인코더(0)",
+        "descr": "0: 자동(하드웨어 H264 -> 소프트웨어 H264 -> JPEG)\n1: JPEG\n2: 하드웨어 H264\n3: 소프트웨어 H264(ffmpeg/libx264)",
+        "min": 0,
+        "max": 3,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ClusterHudTheme",
+        "title": "외부 HUD 테마(0)",
+        "descr": "0: 자동\n1: 다크\n2: 라이트",
+        "min": 0,
+        "max": 2,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ClusterHudLiveFps",
+        "title": "외부 HUD 라이브 FPS 제한(1)",
+        "descr": "0: 무제한(진단용)\n1: 10 FPS(기본)\n2: 20 FPS\n3: 30 FPS\n4: 40 FPS\n5: 50 FPS\n6: 60 FPS",
+        "min": 0,
+        "max": 6,
+        "unit": 1,
+        "default": 1
+      },
+      {
+        "name": "ClusterHudScreenMode",
+        "title": "외부 HUD 화면 모드(0)",
+        "descr": "0: 기본\n1: 디버그\n2: 디버그(시스템)\n3: 디버그(그래프1)\n4: 디버그(그래프2)",
+        "min": 0,
+        "max": 5,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ClusterHudRadarInfo",
+        "title": "외부 HUD 레이더 정보 표시(4)",
+        "descr": "0: 표시 안함\n1: 속도(차량만)\n2: 속도,거리(차량만)\n3: 속도(모두)\n4: 속도,거리(모두)",
+        "min": 0,
+        "max": 4,
+        "unit": 1,
+        "default": 4
+      },
+      {
+        "name": "ClusterHudRadarDisplay",
+        "title": "외부 HUD 레이더 표시 옵션(0)",
+        "descr": "0: 기본(가까운 레이더 포인트 병합)\n1: 상세(레이더 포인트 병합 안함)",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ClusterHudRadarSourceColor",
+        "title": "외부 HUD 레이더 소스 색구분(0)",
+        "descr": "0: 기본(모든 차량 회색)\n1: 켜짐(SCC=R, HDA=B, RADAR=O)",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ClusterHudCoreMode",
+        "title": "외부 HUD CPU 코어 지정(0)",
+        "descr": "CLUSTER_REALTIME=1일 때만 적용\n0: 1,2,3,4\n1: 모든 코어\n변경 시 클러스터 HUD를 재시작합니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      },
+      {
+        "name": "ClusterHudPriority",
+        "title": "외부 HUD 실시간 우선순위(10)",
+        "descr": "CLUSTER_REALTIME=1일 때만 적용\n1-99\n기본 10\n변경 시 클러스터 HUD를 재시작합니다.",
+        "min": 1,
+        "max": 99,
+        "unit": 1,
+        "default": 10
+      },
+      {
+        "name": "ClusterHudCameraViewMode",
+        "title": "외부 HUD 카메라 뷰 모드(0)",
+        "descr": "0: 기본\n1: 모드1(하단뷰)",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      }
+    ],
+    "C3xlite": [
+      {
+        "name": "HardwareC3xLite",
+        "title": "C3xlite 부저 출력 사용",
+        "descr": "C3xlite 기기의 GPIO 부저 출력을 사용합니다. 일반 스피커 기기는 끄세요. 출력 방식 변경은 재시작 후 적용됩니다. 운전자 감시 설정은 변경하지 않습니다.",
+        "min": 0,
+        "max": 1,
+        "unit": 1,
+        "default": 0
+      }
+    ]
+  },
+  "categories": [
+    {
+      "id": "development_features",
+      "ko": "개발 중 기능",
+      "groups": [
+        {
+          "id": "lx3_preferences_group",
+          "ko": "신기능 모아보기",
+          "sections": [
+            {
+              "id": "notification_methods",
+              "ko": "테두리·부저·핸들 진동 알림",
+              "items": [
+                "NotificationBorderPulse",
+                "C3xLiteBuzzerMute",
+                "C3xLiteHapticNotifications",
+                "C3xLiteHapticEngage",
+                "C3xLiteHapticTraffic",
+                "C3xLiteHapticLaneChange",
+                "C3xLiteHapticStopping",
+                "C3xLiteHapticNavigation",
+                "C3xLiteHapticReverse",
+                "C3xLiteHapticPattern"
+              ]
+            },
+            {
+              "id": "surround_display",
+              "ko": "주변 대상 표시",
+              "items": [
+                "EnableCornerRadar"
+              ]
+            },
+            {
+              "id": "cruise_button",
+              "ko": "크루즈 버튼·조향보조",
+              "items": [
+                "CruiseOffKeepLateral"
+              ]
+            },
+            {
+              "id": "launch_follow",
+              "ko": "재출발 추종",
+              "items": [
+                "LaunchFollowStrength"
+              ]
+            },
+            {
+              "id": "lateral_margin",
+              "ko": "차선 내 측방 여유",
+              "items": [
+                "DriverPositionHold",
+                "YellowLineBiasCm",
+                "NearbyVehicleBiasCm",
+                "LateralMarginShadow"
+              ]
+            },
+            {
+              "id": "approach_comfort",
+              "ko": "부드러운 감속·차간거리",
+              "items": [
+                "ApproachComfortEnabled",
+                "ApproachCoastStrength",
+                "ApproachBrakeMargin",
+                "ApproachStopSmooth",
+                "ApproachTrafficCalm",
+                "ApproachFlexibleGap",
+                "ApproachFlexibleGapMin"
+              ]
+            },
+            {
+              "id": "manual_steering",
+              "ko": "깜빡이 수동조향",
+              "items": [
+                "ManualSteerWithBlinker"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DRIVING",
+      "ko": "주행 제어",
+      "groups": [
+        {
+          "id": "START_AUTO",
+          "ko": "시작·오토",
+          "sections": [
+            {
+              "id": "BASIC_START",
+              "ko": "시작 동작",
+              "items": [
+                "AlwaysLateral",
+                "CruiseStartCurrentSpeed",
+                "AutoEngage",
+                "DisableMinSteerSpeed"
+              ]
+            },
+            {
+              "id": "BASIC_AUTOCRUISE",
+              "ko": "오토크루즈",
+              "items": [
+                "AutoCruiseControl",
+                "AutoGasTokSpeed",
+                "AutoGasCancelSpeed",
+                "AutoGasSyncSpeed",
+                "CruiseOnDist"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "BUTTON_PRESET",
+          "ko": "버튼·프리셋",
+          "sections": [
+            {
+              "id": "BUTTON_MODE",
+              "ko": "버튼 모드",
+              "items": [
+                "CruiseButtonMode",
+                "CancelButtonMode",
+                "LfaButtonMode",
+                "PaddleMode"
+              ]
+            },
+            {
+              "id": "BUTTON_UNIT",
+              "ko": "속도 단위",
+              "items": [
+                "CruiseSpeedUnit",
+                "CruiseSpeedUnitBasic",
+                "CruiseButtonLongDelay"
+              ]
+            },
+            {
+              "id": "BUTTON_TEST",
+              "ko": "버튼 테스트",
+              "items": [
+                "CruiseButtonTest1",
+                "CruiseButtonTest2",
+                "CruiseButtonTest3"
+              ]
+            },
+            {
+              "id": "BASIC_SPEEDTABLE",
+              "ko": "속도 프리셋",
+              "items": [
+                "CruiseSpeed1",
+                "CruiseSpeed2",
+                "CruiseSpeed3",
+                "CruiseSpeed4",
+                "CruiseSpeed5"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "STEER",
+          "ko": "차량 조향",
+          "sections": [
+            {
+              "id": "STEER_CENTER",
+              "ko": "중앙 보정",
+              "items": [
+                "PathOffset",
+                "CameraYawTrimDeg"
+              ]
+            },
+            {
+              "id": "STEER_FEEL",
+              "ko": "조향감",
+              "items": [
+                "SteerActuatorDelay",
+                "LatSmoothSec",
+                "LatSuspendAngleDeg",
+                "CustomSR",
+                "SteerRatioRate"
+              ]
+            },
+            {
+              "id": "STEER_LANECHANGE",
+              "ko": "차로 변경 (자동 턴)",
+              "items": [
+                "LaneChangeNeedTorque",
+                "LaneChangeDelay",
+                "LaneChangeBsd",
+                "LaneLineCheck",
+                "AutoTurnControl",
+                "AutoTurnControlSpeedTurn",
+                "AutoTurnControlTurnEnd",
+                "AutoTurnMapChange"
+              ]
+            },
+            {
+              "id": "STEER_LANEMODE",
+              "ko": "레인모드",
+              "items": [
+                "LatMpcPathCost",
+                "LatMpcMotionCost",
+                "LatMpcAccelCost",
+                "LatMpcJerkCost",
+                "LatMpcSteeringRateCost",
+                "LatMpcInputOffset",
+                "UseLaneLineSpeed",
+                "UseLaneLineCurveSpeed",
+                "AdjustLaneOffset"
+              ]
+            },
+            {
+              "id": "STEER_TORQUE_COEFF",
+              "ko": "토크 계수",
+              "items": [
+                "LateralTorqueCustom",
+                "LateralTorqueAccelFactor",
+                "LateralTorqueFriction",
+                "LateralTorqueKpV",
+                "LateralTorqueKiV",
+                "LateralTorqueKf",
+                "LateralTorqueKd"
+              ]
+            },
+            {
+              "id": "STEER_TORQUE_LIMIT",
+              "ko": "조향 제한",
+              "items": [
+                "CustomSteerMax",
+                "CustomSteerDeltaUp",
+                "CustomSteerDeltaDown",
+                "CustomSteerDeltaUpLC",
+                "CustomSteerDeltaDownLC"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "SPEED",
+          "ko": "속도·감속",
+          "sections": [
+            {
+              "id": "SPEED_CAMERA",
+              "ko": "과속카메라",
+              "items": [
+                "AutoNaviSpeedCtrlMode",
+                "AutoNaviSpeedCtrlEnd",
+                "AutoNaviSpeedDecelRate",
+                "AutoNaviSpeedSafetyFactor",
+                "AutoNaviCountDownMode"
+              ]
+            },
+            {
+              "id": "SPEED_LIMIT",
+              "ko": "제한속도",
+              "items": [
+                "AutoRoadSpeedLimitOffset",
+                "AutoRoadSpeedAdjust",
+                "AutoSpeedUptoRoadSpeedLimit"
+              ]
+            },
+            {
+              "id": "SPEED_BUMP",
+              "ko": "방지턱",
+              "items": [
+                "AutoNaviSpeedBumpTime",
+                "AutoNaviSpeedBumpSpeed"
+              ]
+            },
+            {
+              "id": "SPEED_CURVE",
+              "ko": "커브·턴",
+              "items": [
+                "AutoCurveSpeedFactor",
+                "AutoCurveSpeedLowerLimit",
+                "TurnSpeedControlMode",
+                "MapTurnSpeedFactor",
+                "ModelTurnSpeedFactor",
+                "ApplyModelSpeed"
+              ]
+            },
+            {
+              "id": "SPEED_TRAFFIC",
+              "ko": "신호감지",
+              "items": [
+                "TrafficLightDetectMode",
+                "TrafficStopDistanceAdjust"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "CRUISE",
+          "ko": "크루즈·차간",
+          "sections": [
+            {
+              "id": "CRUISE_DRIVE_MODE",
+              "ko": "드라이브 모드",
+              "items": [
+                "MyDrivingMode",
+                "MyDrivingModeAuto"
+              ]
+            },
+            {
+              "id": "CRUISE_ACCEL_TABLE",
+              "ko": "속도별 가속값",
+              "items": [
+                "CruiseMaxVals0",
+                "CruiseMaxVals1",
+                "CruiseMaxVals2",
+                "CruiseMaxVals3",
+                "CruiseMaxVals4",
+                "CruiseMaxVals5",
+                "CruiseMaxVals6"
+              ]
+            },
+            {
+              "id": "CRUISE_STOPGO",
+              "ko": "정차·재출발",
+              "items": [
+                "StopDistanceCarrot",
+                "StoppingAccel",
+                "VEgoStopping",
+                "AChangeCostStarting"
+              ]
+            },
+            {
+              "id": "CRUISE_LONGTUNE",
+              "ko": "가감속 튜닝",
+              "items": [
+                "LongTuningKpV",
+                "LongTuningKiV",
+                "LongTuningKf",
+                "LongActuatorDelay"
+              ]
+            },
+            {
+              "id": "CRUISE_GAP",
+              "ko": "차간거리",
+              "items": [
+                "TFollowGap1",
+                "TFollowGap2",
+                "TFollowGap3",
+                "TFollowGap4",
+                "DynamicTFollow",
+                "DynamicTFollowLC",
+                "EnableSpeedTF",
+                "TFollowDecelBoost"
+              ]
+            },
+            {
+              "id": "CRUISE_LEAD",
+              "ko": "선행차 반응",
+              "items": [
+                "JLeadFactor3",
+                "RadarReactionFactor"
+              ]
+            },
+            {
+              "id": "CRUISE_CARROT",
+              "ko": "당근 크루즈",
+              "items": [
+                "CruiseEcoControl",
+                "CarrotCruiseDecel",
+                "CarrotCruiseAtcDecel"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "VEHICLE",
+      "ko": "차량·하드웨어",
+      "groups": [
+        {
+          "id": "VEH_HYUNDAI",
+          "ko": "현대·기아",
+          "sections": [
+            {
+              "id": "VEH_HYUNDAI",
+              "ko": "현대·기아",
+              "items": [
+                "HyundaiCameraSCC",
+                "IsLdwsCar",
+                "HapticFeedbackWhenSpeedCamera"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "VEH_CANFD",
+          "ko": "CANFD·HDA",
+          "sections": [
+            {
+              "id": "VEH_CANFD",
+              "ko": "CANFD·HDA",
+              "items": [
+                "CanfdHDA2",
+                "CanfdDebug",
+                "HDPuse"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "VEH_RADAR",
+          "ko": "레이더",
+          "sections": [
+            {
+              "id": "VEH_RADAR",
+              "ko": "레이더",
+              "items": [
+                "EnableRadarTracks",
+                "RadarLatFactor"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "VEH_DM",
+          "ko": "운전자 모니터링",
+          "sections": [
+            {
+              "id": "VEH_DM",
+              "ko": "운전자 모니터링",
+              "items": [
+                "DisableDM",
+                "MuteDoor",
+                "MuteSeatbelt"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "VEH_AUX",
+          "ko": "차량 보조",
+          "sections": [
+            {
+              "id": "VEH_AUX",
+              "ko": "차량 보조",
+              "items": [
+                "MaxAngleFrames",
+                "SpeedFromPCM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DISPLAY",
+      "ko": "화면 표시",
+      "groups": [
+        {
+          "id": "DISP_SCREEN",
+          "ko": "정보 표시",
+          "sections": [
+            {
+              "id": "DISP_SCREEN",
+              "ko": "정보 표시",
+              "items": [
+                "ShowDebugUI",
+                "ShowTpms",
+                "ShowDateTime",
+                "ShowPathEnd",
+                "ShowDeviceState",
+                "ShowLaneInfo",
+                "ShowRadarInfo",
+                "ShowRouteInfo",
+                "ShowPlotMode"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "DISP_PATH",
+          "ko": "경로 표시",
+          "sections": [
+            {
+              "id": "DISP_PATH",
+              "ko": "경로 표시",
+              "items": [
+                "CarrotTireTrajectory",
+                "ShowPathMode",
+                "ShowPathColor",
+                "ShowPathColorCruiseOff",
+                "ShowPathModeLane",
+                "ShowPathColorLane"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "DISP_BRIGHT",
+          "ko": "밝기·주행화면",
+          "sections": [
+            {
+              "id": "DISP_BRIGHT",
+              "ko": "밝기·주행화면",
+              "items": [
+                "ShowCustomBrightness",
+                "ShowModelView"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "DISP_HUD",
+          "ko": "외부 HUD",
+          "sections": [
+            {
+              "id": "HUD_BASIC",
+              "ko": "기본",
+              "items": [
+                "ClusterHud",
+                "ClusterHudBrightness",
+                "ClusterHudTheme"
+              ]
+            },
+            {
+              "id": "HUD_SCREEN",
+              "ko": "화면·카메라",
+              "items": [
+                "ClusterHudEncoder",
+                "ClusterHudLiveFps",
+                "ClusterHudScreenMode",
+                "ClusterHudCameraViewMode"
+              ]
+            },
+            {
+              "id": "HUD_RADAR",
+              "ko": "레이더 표시",
+              "items": [
+                "ClusterHudRadarInfo",
+                "ClusterHudRadarDisplay",
+                "ClusterHudRadarSourceColor"
+              ]
+            },
+            {
+              "id": "HUD_PERF",
+              "ko": "성능·디버그",
+              "items": [
+                "ClusterHudCoreMode",
+                "ClusterHudPriority",
+                "ClusterHudDebug"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SYSTEM",
+      "ko": "시스템",
+      "groups": [
+        {
+          "id": "SYS_RECORD",
+          "ko": "녹화·전원",
+          "sections": [
+            {
+              "id": "SYS_RECORD",
+              "ko": "녹화·전원",
+              "items": [
+                "RecordRoadCam",
+                "MaxTimeOffroadMin"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "SYS_NET",
+          "ko": "네트워크·지도",
+          "sections": [
+            {
+              "id": "SYS_NET",
+              "ko": "네트워크·지도",
+              "items": [
+                "HotspotOnBoot",
+                "MapboxStyle"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "SYS_SOUND",
+          "ko": "사운드",
+          "sections": [
+            {
+              "id": "SYS_SOUND_VOLUME",
+              "ko": "스피커 음량",
+              "items": [
+                "SoundVolumeAdjust",
+                "SoundVolumeAdjustEngage"
+              ]
+            },
+            {
+              "id": "SYS_C3XLITE",
+              "ko": "C3xlite",
+              "items": [
+                "HardwareC3xLite"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "SYS_SW",
+          "ko": "소프트웨어",
+          "sections": [
+            {
+              "id": "SYS_SW",
+              "ko": "소프트웨어",
+              "items": [
+                "SoftwareMenu"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

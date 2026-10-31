@@ -82,14 +82,16 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnOverlay).setOnClickListener { startOverlay() }
         findViewById<View>(R.id.btnTuningProfiles).setOnClickListener { startActivity(Intent(this, TuningProfilesActivity::class.java)) }
         findViewById<View>(R.id.btnSettings).setOnClickListener {
-            device?.let { web.loadUrl(it.settingsUrl()) }
+            startActivity(Intent(this,SettingsTilesActivity::class.java))
         }
         findViewById<View>(R.id.btnDevices).setOnClickListener {
             startActivity(Intent(this, DeviceListActivity::class.java))
         }
         findViewById<View>(R.id.btnReload).setOnClickListener { loadResolved(false) }
 
-        loadResolved(intent.getBooleanExtra(EXTRA_SETTINGS, false))
+        val legacySettings=intent.getBooleanExtra(EXTRA_LEGACY_SETTINGS,false)
+        loadResolved(legacySettings)
+        if(intent.getBooleanExtra(EXTRA_SETTINGS,false)&&!legacySettings)startActivity(Intent(this,SettingsTilesActivity::class.java))
     }
 
     private fun showMsg(msg: String) {
@@ -158,5 +160,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_DEVICE_ID = "deviceId"
         const val EXTRA_SETTINGS = "settings"
+        const val EXTRA_LEGACY_SETTINGS = "legacySettings"
     }
 }

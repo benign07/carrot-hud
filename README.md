@@ -20,7 +20,7 @@ See [openpilot update setup](OP_UPDATES.md) for the new update reservation scree
 | Button | Action |
 |--------|--------|
 | **오버레이** | Start the floating always‑on‑top mini‑HUD (asks for "display over other apps" once). Drag to move, ✕ to close. |
-| **설정** | Open the full CarrotPilot web app (settings / tools / terminal / logs). |
+| **설정** | Open grouped tile settings and the five tuning profiles; retain access to the original device web controls. See [tile settings](docs/TILED_SETTINGS.md). |
 | **오파 업데이트** | Read release notes, view history, and reserve an update for P/standstill with controls inactive. Initial device-side setup is required. |
 | **기기** | Open the device list (add / select / edit / remove devices by IP). |
 | **↻** | Reload the HUD. |
@@ -55,7 +55,7 @@ Your PC has no Android build tools, so build it on GitHub for free:
    into the device settings (works with the car off). Long‑press → 수정 / 삭제.
 4. In the HUD: **오버레이** → grant *"display over other apps"* → a floating HUD
    stays on top of other apps (drag to move, ✕ to close). **기기** returns to the
-   list; **설정** opens the full CarrotPilot web app.
+   list; **설정** opens the grouped tile settings. **기존 설정 화면** opens the original web app.
 
 ## Updates (in-app)
 

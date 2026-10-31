@@ -23,6 +23,7 @@
 
         <activity android:name=".TuningQuickActivity" android:exported="false" android:theme="@style/Theme.CarrotHud.Quick" android:configChanges="orientation|screenSize" />
         <activity android:name=".TuningProfilesActivity" android:exported="false" />
+        <activity android:name=".SettingsTilesActivity" android:exported="false" android:configChanges="orientation|screenSize" />
         <activity android:name=".ArchiveSettingsActivity" android:exported="false" />
         <activity android:name=".OpUpdateActivity" android:exported="false" />
         <service android:name=".ArchiveService" android:exported="false"

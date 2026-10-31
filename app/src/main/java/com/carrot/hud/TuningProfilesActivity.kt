@@ -12,6 +12,8 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
 class TuningProfilesActivity:AppCompatActivity() {
+    companion object { const val EXTRA_PROFILE_ID="selected_profile_id" }
+    private var requestedProfileSelected=false
     private lateinit var status:TextView
     private lateinit var details:TextView
     private lateinit var selector:Spinner
@@ -76,6 +78,7 @@ class TuningProfilesActivity:AppCompatActivity() {
     private fun loadProfiles() {
         val catalog=TuningProfileStore.load(this);profiles=catalog.profiles
         selector.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,profiles.map{it.getString("name")})
+        if(!requestedProfileSelected){requestedProfileSelected=true;val id=intent.getStringExtra(EXTRA_PROFILE_ID);val index=profiles.indexOfFirst {it.optString("id")==id};if(index>=0)selector.setSelection(index)}
         if(catalog.problems.isNotEmpty())status.text=catalog.problems.joinToString("\n")
     }
     private fun runDevice(mutation:Boolean=false,work:(TuningApi,Device)->Unit) {

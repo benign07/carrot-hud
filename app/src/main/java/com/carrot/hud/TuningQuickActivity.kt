@@ -13,6 +13,7 @@ class TuningQuickActivity:AppCompatActivity() {
     private lateinit var status:TextView
     private lateinit var list:LinearLayout
     private var opened:Device?=null
+    private var targetSession:TuningDeviceSession?=null
     private val busy=AtomicBoolean(false)
     override fun onCreate(savedInstanceState:Bundle?){
         super.onCreate(savedInstanceState)
@@ -40,17 +41,14 @@ class TuningQuickActivity:AppCompatActivity() {
     }
     private fun resolveTarget():Device {
         val chosen=opened ?: error("기기 등록 필요")
-        require(DeviceStore.getActive(this)?.id==chosen.id){"대상 기기가 바뀌었습니다."}
-        val resolved=Net.resolve(applicationContext,chosen) ?: error("오파 연결을 확인하세요.")
-        val saved=DeviceStore.getActive(this) ?: error("대상 기기가 없습니다.")
-        require(saved.id==chosen.id&&!saved.identityNeedsCheck){"앱에서 대상 기기 식별을 확인하세요."}
-        val bound=resolved.copy(dongle=saved.dongle,identityNeedsCheck=saved.identityNeedsCheck)
-        checkTarget(bound);return bound
+        val session=TuningDeviceSession.open(applicationContext,chosen)
+        targetSession=session
+        return session.device
     }
     private fun checkTarget(d:Device,network:Boolean=true){
-        val active=DeviceStore.getActive(this)
-        require(active!=null&&active.id==d.id&&active.ip==d.ip&&active.port==d.port&&active.dongle==d.dongle&&!active.identityNeedsCheck){"대상 기기·주소가 바뀌었습니다."}
-        require(OpPairingBinding.known(d.dongle)&&(!network||Net.fetchDongle(d.ip,d.port,1200)==d.dongle)){"기기 식별 확인 실패 · 앱에서 연결을 확인하세요."}
+        val session=targetSession ?: error("기기 연결 확인 전")
+        require(session.device==d){"대상 기기가 바뀌었습니다."}
+        session.check(network)
     }
     private fun startWork(apply:Boolean,profile:JSONObject?){
         if(!busy.compareAndSet(false,true))return
@@ -61,7 +59,7 @@ class TuningQuickActivity:AppCompatActivity() {
         Thread{
             var d:Device?=null
             try{
-                val target=resolveTarget();d=target;val api=TuningApi.forDevice(target)
+                val target=resolveTarget();d=target;val api=targetSession!!.api
                 val pending=TuningWidgetStatus.pending(c,target.id)
                 val prior=pending.getString("request_id",null)
                 if(prior!=null){

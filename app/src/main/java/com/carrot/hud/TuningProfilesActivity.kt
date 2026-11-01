@@ -97,10 +97,10 @@ class TuningProfilesActivity:AppCompatActivity() {
             var apiForCall:TuningApi?=null
             try {
                 require(original!=null) {"기기 등록이 필요합니다."}
-                val d=Net.resolve(applicationContext,original) ?: error("오파 연결을 확인하세요.")
-                require(DeviceStore.getActive(this)?.id==original.id && !d.identityNeedsCheck) {"대상 기기 식별을 확인하세요."}
+                val session=TuningDeviceSession.open(applicationContext,original)
+                val d=session.device
                 targetDevice=d
-                val api=TuningApi.forDevice(d)
+                val api=session.api
                 apiForCall=api
                 work(api,d)
             }catch(e:Exception){

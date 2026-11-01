@@ -82,6 +82,11 @@ object TuningProfiles {
 }
 
 class TuningApi(private val exchange:(String,String,JSONObject?)->JSONObject) {
+    internal fun guarded(beforePost:()->Unit,afterReply:(JSONObject)->Unit)=TuningApi {method,path,body ->
+        if(method=="POST")beforePost()
+        exchange(method,path,body).also(afterReply)
+    }
+
     fun state():JSONObject=exchange("GET","/api/tuning_profiles",null).also {
         require(it.optBoolean("ok") && it.opt("schema")==1 && it.optString("family")=="LX3") { "오파 프로필 지원 업데이트가 필요합니다." }
         require(it.getJSONObject("context").getString("serial").isNotBlank())

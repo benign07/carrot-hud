@@ -51,3 +51,14 @@ individual changes. If saved values cannot be read, it falls back to the receipt
 so recovery warnings remain available. Receipt-only or malformed responses cannot erase
 cached full-state storage evidence. No preset values, write transactions, parked gates,
 profile schema or automatic application behavior change.
+
+
+## Clone profile target binding
+The widget and full profile editor share TuningDeviceSession. An unregistered account
+DongleId is not a physical identity. Such devices use only the exact selected endpoint
+(no LAN discovery) and pin the serial returned by the profile receipt API for the
+operation. Each POST rechecks that serial and the active registry entry. Known account
+IDs must still match. Response contexts must match the pinned serial, in addition to
+the existing apply state machine's preview/revision/readback checks. This does not
+alter the OTA pairing/token policy or the device's DongleId and does not authenticate
+an arbitrary first-contact endpoint; it uses the endpoint the user registered.

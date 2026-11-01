@@ -1,7 +1,7 @@
 {
   "Schema": 1,
-  "SourceCommit": "b644a27f384e1138114f0742a4e5d82db1fb9250",
-  "BuiltDate": "2026-10-29",
+  "SourceCommit": "f3df26e7ddccbc0320e4fa63a0864fc6e17fd27d",
+  "BuiltDate": "2026-11-01",
   "BaselineLabel": "소스 기본값 · 기기 현재 설정은 가져오기 전",
   "Rows": [
     {
@@ -2023,7 +2023,7 @@
     {
       "Name": "ApproachFlexibleGap",
       "Title": "안정 접근 시 간격 유연화 (시험)",
-      "Description": "시험 기능·기본 끔. 앞차 접근·정차 편안함을 켜야 LX3 일반 ACC에 적용됩니다. 같은 레이더 앞차가 3초 이상 안정적으로 접근할 때 이동 시간거리 부분만 서서히 완화합니다. 기존 정속 추종은 최소 1.25초를 유지합니다. 저속 정차 매끄러움 값이 0보다 크고 약 4~22km/h에서 차와 앞차가 약하게 감속하면 짧은 기본 시간거리도 선택 비율까지 완화할 수 있습니다. 정차거리·제동거리·기존 MPC 위험경계는 유지하며 위험·끼어들기·인식 이상 시 원래 목표로 즉시 복귀합니다. 실제 거리가 즉시 늘어나는 뜻은 아닙니다. 정차 중 간격을 좁히려 재가속하지 않습니다. 실제 도로 부드러움은 검증 전입니다.",
+      "Description": "시험 기능·기본 끔. 앞차 접근·정차 편안함을 켜야 LX3 일반 ACC에 적용됩니다. 안정된 동일 레이더 앞차를 따라 우리 차와 앞차가 이미 약하게 감속할 때 이동 시간거리 부분을 서서히 완화합니다. 감속을 더 일찍 시작시키는 기능은 아닙니다. 보통 30초에 걸쳐 원래 목표로 복귀하며 다시 감속하면 복구를 잠시 멈춥니다. 정속 추종은 기존 1.25초 하한을 유지합니다. 정차거리·제동 항과 기존 MPC 위험경계는 유지합니다. 급감속·끼어들기·인식 이상에는 완화를 취소하며 실제 거리가 즉시 늘어나지는 않습니다. 정차 중 이 기능으로 재가속하지 않습니다. 실차 개선은 검증 전입니다.",
       "Category": "개발 중 기능 / 신기능 모아보기 / 부드러운 감속·차간거리",
       "Group": "개발 중 기능",
       "Min": 0,
@@ -2035,7 +2035,7 @@
     {
       "Name": "ApproachFlexibleGapMin",
       "Title": "↳ 유연화 최소 시간거리 비율 (%)",
-      "Description": "70~100%, 기본 70%. 이동 시간거리 부분만 줄이는 최대 비율이며 전체 차간거리의 비율이 아닙니다. 80%면 이 부분을 최대 20% 완화합니다. 정차 간격·속도차 제동 여유는 줄이지 않습니다. 정속에서는 1.25초, 약한 저속 감속에서는 기본 시간거리의 선택 비율과 기존 MPC 위험경계+여유가 우선합니다. 100은 추가 완화 없음. 간격을 줄이기 위한 양의 가속은 억제합니다. 70% 도달이나 실제 부드러움을 보장하지 않습니다.",
+      "Description": "70~100%, 기본 70%. 전체 차간거리가 아닌 이동 시간거리 부분의 최소 비율입니다. 80%면 이 부분을 최대 20% 완화합니다. 정차 간격·제동 항·기존 위험경계는 줄이지 않습니다. 안정 감속 뒤 원래 목표로의 정상 복구는 30초에 걸쳐 진행하며 교통 흐름에 따라 더 길어질 수 있습니다. 기존 속도별 거리 보정과 감소량을 더하지 않고 큰 쪽만 사용합니다. 100은 추가 완화 없음. 실제 감소량과 부드러움은 상황에 따라 제한됩니다.",
       "Category": "개발 중 기능 / 신기능 모아보기 / 부드러운 감속·차간거리",
       "Group": "개발 중 기능",
       "Min": 70,
@@ -2214,14 +2214,14 @@
     }
   ],
   "SourceHashes": {
-    "selfdrive/carrot/server/services/settings.py": "6cde78fd89a416d08839a2a72bcbd76cddff25bad39bd28e625e38f4f79ceb92",
+    "selfdrive/carrot/server/services/settings.py": "7b4744e2db3982d9d398df154532f7e49a7d0ba658f8fe5d74f5ee140eb5fd05",
     "selfdrive/carrot_settings.json": "868f6acf60054d0c6952a7e5389490720fc50ae28cdf301ce03d4372cb10f680",
     "selfdrive/carrot/carrot_functions.py": "70ff3bfa6ba47097362620bf2fe4a847bd85286c82e3a7483cdee324379458a8",
     "selfdrive/controls/lib/approach_comfort.py": "0a341ae46eb957ffad525032a4291e59b6ce73a510fce8053d613d03d6ddfb41",
-    "selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py": "b6ee87678c167c2956686496de1db369c4ad19300bf764e335de0d1027d9513c",
+    "selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py": "2e53fa316456d0fcf2a71e0d04c57e56f78e8b417c62c7be88af102d2be2d078",
     "selfdrive/carrot/carrot_controls.py": "85c989ea9bf43d1547b4ed471632da057c8d9e4b8843c77ea1311a84337231b8",
     "selfdrive/controls/lib/lane_planner_2.py": "c486d973ef43dd9f925980d9629986f45d05b4a65fd47fccda4dae4cce6cdbd2",
-    "selfdrive/controls/lib/flexible_gap.py": "dc799bfb40dea4f3e10847a57a072aedab1a6a74cb98c490b664926b7d77ff73",
+    "selfdrive/controls/lib/flexible_gap.py": "95c91e4bef050713dcabcd6288a11e6dd547238029f76c70218a6bb737ad2cd8",
     "opendbc_repo/opendbc/car/hyundai/lx3_haptic_notifications.py": "19419019764695a94ca87cdf10a3beeec9fe0e5f79ab10e5bedbe3cc470d673c",
     "selfdrive/controls/lib/longitudinal_planner.py": "8b894c685e1f11b11704d76cbe652c0ebe3839daa4a9fe3278817e4c44e48598"
   }

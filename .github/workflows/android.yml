@@ -38,6 +38,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Reserve versions above local builds 61 and 62
+        id: version
+        run: echo "code=$(( ${{ github.run_number }} + 2 ))" >> "$GITHUB_OUTPUT"
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -70,8 +74,8 @@ jobs:
       - name: Test and build debug APK
         run: >
           gradle testDebugUnitTest assembleDebug --no-daemon --stacktrace
-          -PversionCode=${{ github.run_number }}
-          -PversionName=1.0.${{ github.run_number }}
+          -PversionCode=${{ steps.version.outputs.code }}
+          -PversionName=1.0.${{ steps.version.outputs.code }}
 
       - name: Upload APK (artifact)
         uses: actions/upload-artifact@v4
@@ -97,9 +101,9 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}
-          name: Build ${{ github.run_number }}
-          body: "Carrot HUD build ${{ github.run_number }} (versionCode ${{ github.run_number }})."
+          tag_name: v${{ steps.version.outputs.code }}
+          name: Build ${{ steps.version.outputs.code }}
+          body: "Carrot HUD build ${{ steps.version.outputs.code }} (versionCode ${{ steps.version.outputs.code }})."
           files: |
             app/build/outputs/apk/debug/*.apk
             windows-release/CarrotTuningLab-Windows-1.2.zip

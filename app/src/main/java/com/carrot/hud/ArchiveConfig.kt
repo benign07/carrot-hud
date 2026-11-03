@@ -34,6 +34,9 @@ object ArchiveConfig {
     private fun prefs(context: Context) = context.getSharedPreferences("archive_control", Context.MODE_PRIVATE)
     fun enabled(context: Context) = prefs(context).getBoolean("auto_start", true)
     fun setEnabled(context: Context, value: Boolean) { prefs(context).edit().putBoolean("auto_start", value).apply() }
+    // Large diagnostic copies are opt-in; connection/OTA/profile health is independent.
+    fun storeOnPhone(context: Context) = prefs(context).getBoolean("store_on_phone", false)
+    fun setStoreOnPhone(context: Context, value: Boolean) { prefs(context).edit().putBoolean("store_on_phone", value).apply() }
     fun pairingFile(context: Context) = File(context.noBackupFilesDir, "pc-pairing.json")
     fun endpoint(context: Context): PcEndpoint? = try { PcEndpoint.parse(pairingFile(context).readText()) } catch (_: Exception) { null }
     fun import(context: Context, raw: String) {

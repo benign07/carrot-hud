@@ -57,6 +57,10 @@ object DriveArchive {
             DiagnosticWidgetStatus.refresh(context, device)
             TuningProfileHealth.refresh(context, device)
             OpUpdateMonitor.connected(context)
+            if (!ArchiveConfig.storeOnPhone(context)) {
+                status = "휴대폰 보관 꺼짐 · 오파 진단 상태만 확인"
+                return
+            }
             val folder = root(context)
             if (!folder.isDirectory && !folder.mkdirs()) throw java.io.IOException("record directory unavailable")
             stage = ArchiveStage.INDEX
@@ -93,7 +97,7 @@ object DriveArchive {
             var lastChunkError: Exception? = null
             var storageFull = false
             if (cursorEndpoint != base) { cursorEndpoint = base; cursor = ArchiveBatchCursor() }
-            cursor.run(rows.length(), cancelled = cancelled) { i ->
+            cursor.run(rows.length(), cancelled = { cancelled() || !ArchiveConfig.storeOnPhone(context) }) { i ->
               var downloadAttempted = false
               try {
                 stage = ArchiveStage.DOWNLOAD

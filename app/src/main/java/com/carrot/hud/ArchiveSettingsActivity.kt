@@ -41,12 +41,20 @@ class ArchiveSettingsActivity : AppCompatActivity() {
         status = TextView(this).apply { textSize = 15f }
         box.addView(status)
         box.addView(Switch(this).apply {
-            text = "부팅 후 자동 연결 · PC 전송"
+            text = "부팅 후 오파 연결 · 기존 자료 PC 전송"
             isChecked = ArchiveConfig.enabled(this@ArchiveSettingsActivity)
             setOnCheckedChangeListener { _, checked ->
                 ArchiveConfig.setEnabled(this@ArchiveSettingsActivity, checked)
                 if (checked) ArchiveService.start(this@ArchiveSettingsActivity)
                 else { ArchiveJobs.cancel(this@ArchiveSettingsActivity); stopService(Intent(this@ArchiveSettingsActivity, ArchiveService::class.java)) }
+            }
+        })
+        box.addView(Switch(this).apply {
+            text = "휴대폰에 주행 진단자료 보관 (기본 꺼짐)"
+            isChecked = ArchiveConfig.storeOnPhone(this@ArchiveSettingsActivity)
+            setOnCheckedChangeListener { _, checked ->
+                ArchiveConfig.setStoreOnPhone(this@ArchiveSettingsActivity, checked)
+                ArchiveJobs.request(this@ArchiveSettingsActivity)
             }
         })
         button("PC 연결 파일 등록") { importFile.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }
@@ -57,7 +65,8 @@ class ArchiveSettingsActivity : AppCompatActivity() {
         }
         text("폰을 켜고 처음 잠금을 해제하면 연결 서비스를 시작합니다. HUD 화면은 알림이나 버튼으로 엽니다. 오파가 꺼져 있어도 보관된 기록은 PC로 전송합니다. PC·Tailscale이 꺼져 있으면 대기 후 재시도합니다.")
         text("샤오미 설정에서 Carrot HUD와 Tailscale의 자동 시작을 허용하고 배터리 제한을 해제해야 할 수 있습니다. 강제 종료 후에는 앱을 다시 열어야 합니다. 절전 중 예약 전송은 지연될 수 있습니다.")
-        text("모바일 데이터 사용: 압축 진단 기록만 전송합니다. 전체 rlog·영상은 포함하지 않습니다. PC 확인 뒤에도 폰 원본은 보존합니다. 폰 보관 상한은 2 GiB입니다.")
+        text("휴대폰 보관은 기본 꺼짐입니다. 꺼져 있어도 오파 연결·진단 상태·프로필 확인·업데이트는 유지하며, 오파 기기의 원본 기록을 끄지 않습니다. 이미 보관한 자료의 PC 전송도 유지합니다.")
+        text("보관을 켠 경우에만 압축 진단 기록을 폰에 복사합니다. 전체 rlog·영상은 포함하지 않습니다. 진행 중인 한 건은 마친 뒤 다음 기록부터 중지합니다. PC 확인 뒤에도 폰 원본을 자동 삭제하지 않으며, 앱 보관 한도는 2 GiB입니다.")
         setContentView(ScrollView(this).apply { addView(box) })
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
             notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
